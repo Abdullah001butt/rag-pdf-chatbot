@@ -1,0 +1,24 @@
+
+
+# Python virtualenv & bytecode
+myenv/
+__pycache__/
+**/__pycache__/
+*.pyc
+
+#Ignore vscode AI rules
+.github\instructions\codacy.instructions.md
+
+# Documind AI runtime data
+documind.db
+.env
+faiss_index/
+
+# Frontend (React/Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# Downloaded CLI tools
+tools/
