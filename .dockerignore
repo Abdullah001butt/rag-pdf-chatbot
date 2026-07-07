@@ -1,0 +1,17 @@
+myenv/
+__pycache__/
+**/__pycache__/
+*.pyc
+documind.db
+faiss_index/
+.env
+.env.example
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+tools/
+assets/
+.git/
+.github/
+*.md

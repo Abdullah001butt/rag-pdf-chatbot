@@ -257,11 +257,59 @@ Opens at `http://localhost:8501`. Shares the same database and business logic as
 - **Real payments, not a simulated upgrade** — Stripe Checkout + webhook is the actual source of truth for tier changes; the frontend's post-redirect `/billing/verify` call is a UX convenience, not the authority.
 - **Per-user API keys over a shared backend key** — each user brings their own Gemini key, avoiding shared-cost/rate-limit problems across users (a centralized-key mode remains available as a fallback via `GOOGLE_API_KEY` in `.env` for demo/admin use).
 
+## Deployment
+
+The backend is containerized and has been verified to run correctly both with local SQLite and with Postgres (via `DATABASE_URL`). Recommended hosting split:
+
+- **Backend** → [Render](https://render.com/), [Railway](https://railway.app/), or [Fly.io](https://fly.io/) — any host that can run a Docker container and give you a public HTTPS URL (required for the Stripe webhook)
+- **Frontend** → [Vercel](https://vercel.com/) or [Netlify](https://www.netlify.com/) — zero-config static hosting for the Vite build, no Docker needed
+- **Database** → managed Postgres from the same provider as your backend (Render/Railway/Fly all offer one)
+
+### Backend (Docker)
+
+```bash
+docker build -f backend/Dockerfile -t documind-backend .
+docker run -p 8000:8000 --env-file .env documind-backend
+```
+
+The Dockerfile builds from the **repo root** as context (not `backend/` alone), since the backend imports `db.py`/`auth.py`/`billing.py`/`rag_core.py` from the project root.
+
+To test locally against Postgres instead of SQLite:
+
+```bash
+docker compose up --build
+```
+
+This starts a Postgres container plus the backend wired to it via `DATABASE_URL` — useful for confirming the Postgres path works before deploying.
+
+On your hosting provider: point it at `backend/Dockerfile` with the repo root as build context, set the environment variables below, and it will listen on the `$PORT` the platform assigns.
+
+### Frontend
+
+```bash
+cd frontend
+npm run build   # outputs to frontend/dist
+```
+
+Point Vercel/Netlify at the `frontend/` directory with build command `npm run build` and output directory `dist`. Set `VITE_API_URL` to your deployed backend's URL.
+
+### Production environment checklist
+
+| Variable | Notes |
+|---|---|
+| `ENVIRONMENT` | Set to `production` — the app **refuses to start** if `JWT_SECRET_KEY` is still the dev default in this mode |
+| `JWT_SECRET_KEY` | Generate with `python -c "import secrets; print(secrets.token_hex(32))"` |
+| `DATABASE_URL` | Your managed Postgres connection string |
+| `CORS_ORIGINS` | Your deployed frontend's URL(s), comma-separated |
+| `FRONTEND_URL` | Your deployed frontend's URL — used in Stripe redirect URLs and email links |
+| `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY` | Switch to live keys when ready to accept real payments |
+| `STRIPE_WEBHOOK_SECRET` | Create a new webhook endpoint in the Stripe dashboard pointing at `https://your-backend/billing/webhook`, then use **its** signing secret (different from the local CLI one) |
+| `RESEND_API_KEY` / `RESEND_FROM_EMAIL` | Verify a domain at [resend.com/domains](https://resend.com/domains) to send to any recipient — the sandbox sender only delivers to your own Resend account email |
+
 ## Limitations
 
-- **Single-node SQLite** — fine for a coursework demo and single-instance deployment, but a production SaaS at scale would use a managed Postgres/MySQL instance for concurrent write safety.
 - **PDF content itself isn't persisted server-side** — only chat history, usage logs, and account data are stored in the database; uploaded PDFs and the FAISS index live in the backend process's memory per user, so documents must be re-uploaded after a full server restart.
-- **Dev-mode JWT secret** — `JWT_SECRET_KEY` defaults to an insecure placeholder; must be set to a real random string before any real deployment, and tokens currently have no refresh mechanism (24h hard expiry).
+- **Email sending requires a verified domain for production use** — without one, Resend's sandbox mode only delivers to the email address on the developer's own Resend account.
 - **OCR accuracy** depends on scan quality and the vision model's read of the rendered page image.
 - Requires an active internet connection and a valid Google AI API key; no offline/local-model mode.
 
