@@ -16,6 +16,9 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 DATABASE_URL = os.getenv("DATABASE_URL")  # e.g. postgresql://user:pass@host:5432/documind
 
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "Documind AI <onboarding@resend.dev>")
+
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-only-insecure-secret-change-me")
 INSECURE_JWT_DEFAULTS = {"dev-only-insecure-secret-change-me", "change-me-to-a-long-random-string", ""}
 

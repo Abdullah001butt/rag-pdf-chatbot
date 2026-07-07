@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useNavigate } from "react-router-dom"
 import { api, type BillingStatus } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
 import { Sidebar } from "@/components/Sidebar"
@@ -30,7 +31,8 @@ export default function Dashboard() {
   const [loading, setLoading] = React.useState(true)
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
   const [checkoutNotice, setCheckoutNotice] = React.useState<string | null>(null)
-  const { refreshTier } = useAuth()
+  const { user, refreshTier } = useAuth()
+  const navigate = useNavigate()
 
   React.useEffect(() => {
     async function bootstrap() {
@@ -88,6 +90,14 @@ export default function Dashboard() {
       </div>
 
       <main className="flex flex-1 flex-col overflow-hidden">
+        {user && !user.email_verified && (
+          <div className="flex items-center justify-between gap-3 border-b border-warning/30 bg-warning/10 px-5 py-2 text-sm text-text">
+            <span>⚠ Please verify your email address.</span>
+            <button className="font-semibold text-warning hover:underline" onClick={() => navigate("/account")}>
+              Verify now →
+            </button>
+          </div>
+        )}
         {checkoutNotice && (
           <div className="flex items-center justify-between gap-3 border-b border-accent/30 bg-accent/10 px-5 py-2 text-sm text-text">
             <span>{checkoutNotice}</span>

@@ -27,14 +27,27 @@ def decode_access_token(token: str):
         return None
 
 
-def generate_refresh_token() -> str:
+def generate_opaque_token() -> str:
     """Opaque random token (not a JWT) so it can be looked up and revoked server-side."""
     return secrets.token_urlsafe(48)
 
 
-def hash_refresh_token(raw_token: str) -> str:
+def hash_token(raw_token: str) -> str:
     return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+
+
+# Backwards-compatible aliases used by the refresh-token flow specifically.
+generate_refresh_token = generate_opaque_token
+hash_refresh_token = hash_token
 
 
 def refresh_token_expiry() -> datetime:
     return datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+
+
+def email_verify_token_expiry() -> datetime:
+    return datetime.utcnow() + timedelta(hours=24)
+
+
+def password_reset_token_expiry() -> datetime:
+    return datetime.utcnow() + timedelta(hours=1)

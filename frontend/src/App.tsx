@@ -3,6 +3,10 @@ import { AuthProvider, useAuth } from "@/context/AuthContext"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import LandingPage from "@/pages/LandingPage"
 import AuthPage from "@/pages/AuthPage"
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage"
+import ResetPasswordPage from "@/pages/ResetPasswordPage"
+import VerifyEmailPage from "@/pages/VerifyEmailPage"
+import AccountSettingsPage from "@/pages/AccountSettingsPage"
 import Dashboard from "@/pages/Dashboard"
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -17,11 +21,22 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/account"
+        element={
+          <ProtectedRoute>
+            <AccountSettingsPage />
           </ProtectedRoute>
         }
       />

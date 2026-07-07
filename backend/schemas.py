@@ -38,6 +38,38 @@ class UserResponse(BaseModel):
     username: str
     email: str
     tier: str
+    email_verified: bool
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+class ChangeEmailRequest(BaseModel):
+    new_email: str
+    current_password: str
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str
+
+
+class MessageResponse(BaseModel):
+    message: str
 
 
 class BillingStatusResponse(BaseModel):

@@ -28,6 +28,7 @@ class User(Base):
     email = Column(String(120), unique=True, nullable=False)
     password_hash = Column(String(200), nullable=False)
     tier = Column(String(10), nullable=False, default="free")
+    email_verified = Column(Boolean, default=False, nullable=False)
     stripe_customer_id = Column(String(50), unique=True, nullable=True)
     stripe_subscription_id = Column(String(50), unique=True, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -35,6 +36,7 @@ class User(Base):
     chat_messages = relationship("ChatMessage", back_populates="user", cascade="all, delete-orphan")
     usage_events = relationship("UsageEvent", back_populates="user", cascade="all, delete-orphan")
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
+    action_tokens = relationship("ActionToken", back_populates="user", cascade="all, delete-orphan")
 
 
 class ChatMessage(Base):
@@ -74,6 +76,22 @@ class RefreshToken(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="refresh_tokens")
+
+
+class ActionToken(Base):
+    """Single-use tokens for email verification and password reset."""
+
+    __tablename__ = "action_tokens"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    token_hash = Column(String(64), unique=True, nullable=False)
+    purpose = Column(String(20), nullable=False)  # "email_verify" | "password_reset"
+    expires_at = Column(DateTime, nullable=False)
+    used = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="action_tokens")
 
 
 def init_db():
@@ -144,3 +162,30 @@ def revoke_refresh_token(db_session, token_hash):
 def revoke_all_refresh_tokens(db_session, user_id):
     db_session.query(RefreshToken).filter(RefreshToken.user_id == user_id).update({"revoked": True})
     db_session.commit()
+
+
+def store_action_token(db_session, user_id, token_hash, purpose, expires_at):
+    record = ActionToken(user_id=user_id, token_hash=token_hash, purpose=purpose, expires_at=expires_at)
+    db_session.add(record)
+    db_session.commit()
+    return record
+
+
+def get_valid_action_token(db_session, token_hash, purpose):
+    return (
+        db_session.query(ActionToken)
+        .filter(
+            ActionToken.token_hash == token_hash,
+            ActionToken.purpose == purpose,
+            ActionToken.used.is_(False),
+            ActionToken.expires_at > datetime.utcnow(),
+        )
+        .first()
+    )
+
+
+def consume_action_token(db_session, token_hash):
+    record = db_session.query(ActionToken).filter(ActionToken.token_hash == token_hash).first()
+    if record:
+        record.used = True
+        db_session.commit()

@@ -97,6 +97,7 @@ export interface User {
   username: string
   email: string
   tier: "free" | "pro"
+  email_verified: boolean
 }
 
 export interface BillingStatus {

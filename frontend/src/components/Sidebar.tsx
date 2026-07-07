@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useNavigate } from "react-router-dom"
 import { api, getStoredApiKey, setStoredApiKey, type BillingStatus } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,7 @@ interface SidebarProps {
 
 export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [uploading, setUploading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [apiKey, setApiKey] = React.useState(() => getStoredApiKey())
@@ -95,6 +97,9 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
             </Button>
           </>
         )}
+        <Button variant="outline" className="mt-2 w-full" onClick={() => navigate("/account")}>
+          Account Settings
+        </Button>
         <Button variant="outline" className="mt-2 w-full" onClick={logout}>
           Log Out
         </Button>

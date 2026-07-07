@@ -71,6 +71,16 @@ export default function AuthPage() {
             )}
             <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
 
+            {mode === "login" && (
+              <button
+                type="button"
+                onClick={() => navigate("/forgot-password")}
+                className="self-end text-xs font-semibold text-accent hover:underline"
+              >
+                Forgot password?
+              </button>
+            )}
+
             {error && <p className="text-sm text-danger">{error}</p>}
 
             <Button type="submit" disabled={busy} className="mt-2 w-full">
