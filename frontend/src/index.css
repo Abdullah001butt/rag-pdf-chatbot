@@ -3,10 +3,10 @@
 @theme {
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  --color-accent: #4f6df5;
-  --color-accent-dark: #3b52c4;
-  --color-surface: #101521;
-  --color-surface-2: #161b28;
+  --color-accent: #10b981;
+  --color-accent-dark: #047857;
+  --color-surface: #0d0f12;
+  --color-surface-2: #13161a;
   --color-border: rgba(255, 255, 255, 0.08);
   --color-text: #e7eaf2;
   --color-text-muted: #9aa3b8;
@@ -25,7 +25,7 @@ html, body, #root {
 
 body {
   margin: 0;
-  background: radial-gradient(circle at top left, #0f1420 0%, #0a0e17 55%, #05070c 100%);
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(16, 185, 129, 0.08), transparent 60%), #000000;
   color: var(--color-text);
   font-family: var(--font-sans);
 }

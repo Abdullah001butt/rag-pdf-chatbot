@@ -78,7 +78,7 @@ export function GeneratePanel({
 
       {result && (
         <>
-          <div className="whitespace-pre-wrap rounded-xl border border-border bg-white/3 p-5 text-sm leading-relaxed text-text">
+          <div className="whitespace-pre-wrap rounded-2xl border border-border bg-white/3 p-5 text-sm leading-relaxed text-text">
             {result}
           </div>
           <div>

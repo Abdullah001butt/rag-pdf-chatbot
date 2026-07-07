@@ -65,13 +65,13 @@ export function ChatPanel() {
       <div className="flex flex-col gap-3 overflow-y-auto">
         {[...turns].reverse().map((turn, i) => (
           <div key={i} className="flex flex-col gap-2">
-            <div className="flex gap-3 rounded-xl border border-border bg-accent/10 p-4">
+            <div className="flex gap-3 rounded-2xl border border-white/10 bg-accent/10 p-4">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-xs font-bold text-white">U</div>
               <div className="text-sm text-text">{turn.question}</div>
             </div>
             <div
-              className={`flex gap-3 rounded-xl border p-4 ${
-                turn.notFound ? "border-warning/30 bg-warning/10" : "border-border bg-white/3"
+              className={`flex gap-3 rounded-2xl border p-4 ${
+                turn.notFound ? "border-warning/30 bg-warning/10" : "border-white/10 bg-white/3"
               }`}
             >
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#2a2f3d] text-xs font-bold text-white">

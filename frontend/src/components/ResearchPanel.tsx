@@ -20,7 +20,7 @@ export function ResearchPanel({ files, locked }: ResearchPanelProps) {
 
   if (locked) {
     return (
-      <div className="rounded-xl border border-warning/30 bg-warning/10 p-6 text-sm text-text">
+      <div className="rounded-2xl border border-warning/30 bg-warning/10 p-6 text-sm text-text">
         🔒 <strong>Research Assistant</strong> is available on the Pro plan. Upgrade from the sidebar to unlock it.
       </div>
     )
@@ -70,7 +70,7 @@ export function ResearchPanel({ files, locked }: ResearchPanelProps) {
       {error && <p className="text-sm text-danger">{error}</p>}
 
       {subQuestions.length > 0 && (
-        <details className="rounded-xl border border-border bg-white/5 p-4 text-sm text-text-muted">
+        <details className="rounded-2xl border border-border bg-white/5 p-4 text-sm text-text-muted">
           <summary className="cursor-pointer font-semibold text-text">Sub-questions investigated</summary>
           <ul className="mt-2 list-disc pl-5">
             {subQuestions.map((q, i) => (
@@ -82,7 +82,7 @@ export function ResearchPanel({ files, locked }: ResearchPanelProps) {
 
       {report && (
         <>
-          <div className="whitespace-pre-wrap rounded-xl border border-border bg-white/5 p-5 text-sm leading-relaxed text-text">
+          <div className="whitespace-pre-wrap rounded-2xl border border-border bg-white/5 p-5 text-sm leading-relaxed text-text">
             {report}
           </div>
           <div>

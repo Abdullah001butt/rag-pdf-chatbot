@@ -1,5 +1,5 @@
 import * as React from "react"
-import { api, type User } from "@/lib/api"
+import { api, setTokens, clearTokens, getRefreshToken, type User } from "@/lib/api"
 
 interface AuthContextValue {
   user: User | null
@@ -19,24 +19,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   })
   const [loading] = React.useState(false)
 
-  function persist(token: string, user: User) {
-    localStorage.setItem("documind_token", token)
+  function persist(accessToken: string, refreshToken: string, user: User) {
+    setTokens(accessToken, refreshToken)
     localStorage.setItem("documind_user", JSON.stringify(user))
     setUser(user)
   }
 
   async function login(username: string, password: string) {
     const { data } = await api.post("/auth/login", { username, password })
-    persist(data.access_token, data.user)
+    persist(data.access_token, data.refresh_token, data.user)
   }
 
   async function signup(username: string, email: string, password: string) {
     const { data } = await api.post("/auth/signup", { username, email, password })
-    persist(data.access_token, data.user)
+    persist(data.access_token, data.refresh_token, data.user)
   }
 
   function logout() {
-    localStorage.removeItem("documind_token")
+    const refreshToken = getRefreshToken()
+    if (refreshToken) {
+      api.post("/auth/logout", { refresh_token: refreshToken }).catch(() => {})
+    }
+    clearTokens()
     localStorage.removeItem("documind_user")
     setUser(null)
   }

@@ -71,11 +71,11 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
   }
 
   return (
-    <aside className="flex h-full w-full flex-col gap-6 border-r border-border bg-[#0b0f1a] p-5 md:w-72">
+    <aside className="flex h-full w-full flex-col gap-6 border-r border-white/10 bg-black p-5 md:w-72">
       <div>
-        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Account</div>
-        <div className="rounded-lg border border-border bg-surface p-3">
-          <div className="mb-1 font-semibold text-text">{user?.username}</div>
+        <div className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">Account</div>
+        <div className="rounded-2xl border border-white/10 bg-white/3 p-4">
+          <div className="mb-2 font-bold text-text">{user?.username}</div>
           <Badge variant={billing?.tier === "pro" ? "pro" : "default"}>{billing?.label ?? "Free"} Plan</Badge>
           {billing?.tier === "free" && (
             <p className="mt-2 text-xs text-text-muted">
@@ -101,7 +101,7 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
       </div>
 
       <div>
-        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Google API Key</div>
+        <div className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">Google API Key</div>
         <div className="flex gap-1">
           <Input
             type={showApiKey ? "text" : "password"}
@@ -112,7 +112,7 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
           <button
             type="button"
             onClick={() => setShowApiKey((s) => !s)}
-            className="shrink-0 rounded-lg border border-border px-2 text-xs text-text-muted hover:bg-white/5"
+            className="shrink-0 rounded-lg border border-white/10 px-2 text-xs text-text-muted hover:bg-white/5"
             title={showApiKey ? "Hide" : "Show"}
           >
             {showApiKey ? "🙈" : "👁"}
@@ -129,7 +129,7 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
       </div>
 
       <div>
-        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Documents</div>
+        <div className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">Documents</div>
         <input ref={fileInputRef} type="file" accept=".pdf" multiple onChange={handleUpload} className="hidden" id="pdf-upload" />
         <Button
           className="w-full cursor-pointer"
@@ -140,9 +140,13 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
           {uploading ? "Uploading..." : "Upload PDFs"}
         </Button>
         {error && <p className="mt-2 text-xs text-danger">{error}</p>}
-        <ul className="mt-3 flex flex-col gap-1">
+        <ul className="mt-3 flex flex-col gap-1.5">
           {files.map((f) => (
-            <li key={f} className="truncate rounded-md bg-surface px-2 py-1 text-xs text-text-muted" title={f}>
+            <li
+              key={f}
+              className="truncate rounded-lg border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-text-muted"
+              title={f}
+            >
               📄 {f}
             </li>
           ))}

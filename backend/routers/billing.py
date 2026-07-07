@@ -1,3 +1,5 @@
+import logging
+
 import stripe
 from fastapi import APIRouter, Depends, HTTPException, Request
 
@@ -9,6 +11,7 @@ from config import STRIPE_WEBHOOK_SECRET, STRIPE_PUBLISHABLE_KEY
 from stripe_service import create_checkout_session, create_billing_portal_session, verify_checkout_session
 
 router = APIRouter(prefix="/billing", tags=["billing"])
+logger = logging.getLogger("documind.billing")
 
 
 def _status_response(user, db) -> BillingStatusResponse:
@@ -91,10 +94,12 @@ async def webhook(request: Request, db=Depends(get_db)):
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
     except (ValueError, stripe.error.SignatureVerificationError):
+        logger.warning("Rejected webhook request with invalid Stripe signature.")
         raise HTTPException(status_code=400, detail="Invalid Stripe webhook signature.")
 
     event_type = event["type"]
     data = event["data"]["object"]
+    logger.info(f"Stripe webhook received: {event_type}")
 
     if event_type == "checkout.session.completed":
         metadata = data["metadata"]
@@ -107,6 +112,7 @@ async def webhook(request: Request, db=Depends(get_db)):
                 if subscription_id:
                     user.stripe_subscription_id = subscription_id
                 db.commit()
+                logger.info(f"User id={user.id} upgraded to Pro via checkout.session.completed")
 
     elif event_type in ("customer.subscription.deleted", "customer.subscription.updated"):
         status_value = data["status"] if "status" in data else None
@@ -117,5 +123,6 @@ async def webhook(request: Request, db=Depends(get_db)):
                 user.tier = "free"
                 user.stripe_subscription_id = None
                 db.commit()
+                logger.info(f"User id={user.id} downgraded to Free ({event_type}, status={status_value})")
 
     return {"received": True}

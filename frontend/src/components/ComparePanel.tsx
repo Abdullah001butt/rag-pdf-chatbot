@@ -24,7 +24,7 @@ export function ComparePanel({ files, locked }: ComparePanelProps) {
 
   if (locked) {
     return (
-      <div className="rounded-xl border border-warning/30 bg-warning/10 p-6 text-sm text-text">
+      <div className="rounded-2xl border border-warning/30 bg-warning/10 p-6 text-sm text-text">
         🔒 <strong>Document Comparison</strong> is available on the Pro plan. Upgrade from the sidebar to unlock it.
       </div>
     )
@@ -91,7 +91,7 @@ export function ComparePanel({ files, locked }: ComparePanelProps) {
 
       {result && (
         <>
-          <div className="whitespace-pre-wrap rounded-xl border border-border bg-white/5 p-5 text-sm leading-relaxed text-text">
+          <div className="whitespace-pre-wrap rounded-2xl border border-border bg-white/5 p-5 text-sm leading-relaxed text-text">
             {result}
           </div>
           <div>

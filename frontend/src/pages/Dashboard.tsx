@@ -98,16 +98,23 @@ export default function Dashboard() {
         )}
         <header className="hidden items-center gap-3 border-b border-border p-5 md:flex">
           <img src="/logo.png" alt="Documind AI" className="h-8 w-auto" onError={(e) => (e.currentTarget.style.display = "none")} />
-          <p className="text-sm text-text-muted">Ask questions across multiple documents, powered by Gemini &amp; retrieval-augmented search</p>
+          <div>
+            <p className="font-extrabold leading-tight text-text">
+              Documind <span className="text-accent">AI</span>
+            </p>
+            <p className="text-xs text-text-muted">Ask questions across multiple documents, powered by Gemini &amp; retrieval-augmented search</p>
+          </div>
         </header>
 
-        <nav className="flex gap-1 overflow-x-auto border-b border-border px-5 pt-3">
+        <nav className="flex gap-1.5 overflow-x-auto border-b border-border px-4 py-3 md:px-6">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`shrink-0 rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
-                tab === t.key ? "bg-white/5 text-text" : "text-text-muted hover:text-text"
+              className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+                tab === t.key
+                  ? "border border-accent/30 bg-accent/10 text-accent"
+                  : "border border-transparent text-text-muted hover:text-text"
               }`}
             >
               {t.label}

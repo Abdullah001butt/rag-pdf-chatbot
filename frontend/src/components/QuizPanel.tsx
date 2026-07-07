@@ -25,7 +25,7 @@ export function QuizPanel({ files, locked }: QuizPanelProps) {
 
   if (locked) {
     return (
-      <div className="rounded-xl border border-warning/30 bg-warning/10 p-6 text-sm text-text">
+      <div className="rounded-2xl border border-warning/30 bg-warning/10 p-6 text-sm text-text">
         🔒 <strong>Quiz & MCQ Generator</strong> is available on the Pro plan. Upgrade from the sidebar to unlock it.
       </div>
     )
@@ -92,7 +92,7 @@ export function QuizPanel({ files, locked }: QuizPanelProps) {
           {quiz.map((q, i) => {
             const picked = answers[i]
             return (
-              <div key={i} className="rounded-xl border border-border bg-white/5 p-4">
+              <div key={i} className="rounded-2xl border border-border bg-white/5 p-4">
                 <p className="mb-3 font-semibold text-text">
                   Q{i + 1}. {q.question}
                 </p>
