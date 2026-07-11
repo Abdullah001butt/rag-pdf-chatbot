@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Response
 
 from billing import check_pdf_limit
 from deps import get_current_user
@@ -11,6 +11,15 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 def list_documents(user=Depends(get_current_user)):
     store = get_user_store(user.id)
     return {"files": list(store["files"].keys())}
+
+
+@router.get("/raw")
+def get_raw_document(filename: str, user=Depends(get_current_user)):
+    store = get_user_store(user.id)
+    content = store["files"].get(filename)
+    if content is None:
+        raise HTTPException(status_code=404, detail="Document not found. Upload it first.")
+    return Response(content=content, media_type="application/pdf")
 
 
 @router.post("/upload")
