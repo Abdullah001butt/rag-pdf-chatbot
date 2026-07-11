@@ -41,6 +41,20 @@ interface AddedText {
   style: TextStyle
 }
 
+interface AddedSignature {
+  id: string
+  pageEntryId: string
+  left: number
+  top: number
+  pdfX: number
+  pdfYTop: number
+  widthPdf: number
+  heightPdf: number
+  widthPx: number
+  heightPx: number
+  dataUrl: string
+}
+
 type PageEntry = { id: string; type: "page"; origIndex: number } | { id: string; type: "blank" }
 
 const DEFAULT_STYLE: TextStyle = { fontSize: 12, bold: false, color: "#000000" }
@@ -57,6 +71,19 @@ const REWRITE_ACTIONS: { label: string; instruction: string }[] = [
   { label: "✨ Formal", instruction: "Rewrite this in a more formal, professional tone." },
   { label: "✨ Casual", instruction: "Rewrite this in a more casual, conversational tone." },
 ]
+
+const SIG_CANVAS_WIDTH = 400
+const SIG_CANVAS_HEIGHT = 150
+const SIG_PLACE_WIDTH = 180
+const SIG_PLACE_HEIGHT = (SIG_PLACE_WIDTH * SIG_CANVAS_HEIGHT) / SIG_CANVAS_WIDTH
+
+function dataUrlToUint8Array(dataUrl: string): Uint8Array {
+  const base64 = dataUrl.split(",")[1]
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  return bytes
+}
 
 function hexToRgb(hex: string): RGB {
   const clean = hex.replace("#", "")
@@ -86,6 +113,15 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
   const [error, setError] = React.useState<string | null>(null)
   const [aiBusyKey, setAiBusyKey] = React.useState<string | null>(null)
   const [redacting, setRedacting] = React.useState(false)
+  const [addedSignatures, setAddedSignatures] = React.useState<AddedSignature[]>([])
+  const [selectedSigId, setSelectedSigId] = React.useState<string | null>(null)
+  const [sigModalOpen, setSigModalOpen] = React.useState(false)
+  const [sigTab, setSigTab] = React.useState<"draw" | "type">("draw")
+  const [typedSigText, setTypedSigText] = React.useState("")
+  const [placingSignature, setPlacingSignature] = React.useState<{ dataUrl: string; widthPx: number; heightPx: number } | null>(null)
+  const [isDrawing, setIsDrawing] = React.useState(false)
+
+  const sigCanvasRef = React.useRef<HTMLCanvasElement>(null)
 
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const containerRef = React.useRef<HTMLDivElement>(null)
@@ -189,10 +225,36 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
   }
 
   function handleCanvasClick(e: React.MouseEvent<HTMLDivElement>) {
-    if (!addingText || !containerRef.current || !currentEntry) return
+    if (!containerRef.current || !currentEntry) return
     const rect = containerRef.current.getBoundingClientRect()
     const left = e.clientX - rect.left
     const top = e.clientY - rect.top
+
+    if (placingSignature) {
+      const pdfX = left / scale
+      const pdfYTop = (canvasRef.current!.height - top) / scale
+      const id = `sig-${Date.now()}`
+      setAddedSignatures((prev) => [
+        ...prev,
+        {
+          id,
+          pageEntryId: currentEntry.id,
+          left,
+          top,
+          pdfX,
+          pdfYTop,
+          widthPdf: placingSignature.widthPx / scale,
+          heightPdf: placingSignature.heightPx / scale,
+          widthPx: placingSignature.widthPx,
+          heightPx: placingSignature.heightPx,
+          dataUrl: placingSignature.dataUrl,
+        },
+      ])
+      setPlacingSignature(null)
+      return
+    }
+
+    if (!addingText) return
     const pdfX = left / scale
     const pdfY = (canvasRef.current!.height - top) / scale
     const id = `added-${Date.now()}`
@@ -202,6 +264,84 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
     ])
     setAddingText(false)
     setEditingKey(id)
+  }
+
+  function deleteSignature(id: string) {
+    setAddedSignatures((prev) => prev.filter((s) => s.id !== id))
+    setSelectedSigId(null)
+  }
+
+  function resizeSignature(id: string, factor: number) {
+    setAddedSignatures((prev) =>
+      prev.map((s) =>
+        s.id === id
+          ? {
+              ...s,
+              widthPx: s.widthPx * factor,
+              heightPx: s.heightPx * factor,
+              widthPdf: s.widthPdf * factor,
+              heightPdf: s.heightPdf * factor,
+            }
+          : s
+      )
+    )
+  }
+
+  function startDrawing(e: React.MouseEvent<HTMLCanvasElement>) {
+    const canvas = sigCanvasRef.current
+    if (!canvas) return
+    const rect = canvas.getBoundingClientRect()
+    const ctx = canvas.getContext("2d")!
+    ctx.beginPath()
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top)
+    setIsDrawing(true)
+  }
+
+  function drawStroke(e: React.MouseEvent<HTMLCanvasElement>) {
+    if (!isDrawing) return
+    const canvas = sigCanvasRef.current
+    if (!canvas) return
+    const rect = canvas.getBoundingClientRect()
+    const ctx = canvas.getContext("2d")!
+    ctx.lineWidth = 2.5
+    ctx.lineCap = "round"
+    ctx.strokeStyle = "#000000"
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top)
+    ctx.stroke()
+  }
+
+  function stopDrawing() {
+    setIsDrawing(false)
+  }
+
+  function clearSigCanvas() {
+    const canvas = sigCanvasRef.current
+    if (!canvas) return
+    canvas.getContext("2d")!.clearRect(0, 0, canvas.width, canvas.height)
+  }
+
+  function confirmDrawnSignature() {
+    const canvas = sigCanvasRef.current
+    if (!canvas) return
+    setPlacingSignature({ dataUrl: canvas.toDataURL("image/png"), widthPx: SIG_PLACE_WIDTH, heightPx: SIG_PLACE_HEIGHT })
+    setSigModalOpen(false)
+    setAddingText(false)
+  }
+
+  function confirmTypedSignature() {
+    if (!typedSigText.trim()) return
+    const canvas = document.createElement("canvas")
+    canvas.width = SIG_CANVAS_WIDTH
+    canvas.height = SIG_CANVAS_HEIGHT
+    const ctx = canvas.getContext("2d")!
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.font = "60px 'Segoe Script', 'Brush Script MT', cursive"
+    ctx.fillStyle = "#000000"
+    ctx.textBaseline = "middle"
+    ctx.fillText(typedSigText, 15, canvas.height / 2)
+    setPlacingSignature({ dataUrl: canvas.toDataURL("image/png"), widthPx: SIG_PLACE_WIDTH, heightPx: SIG_PLACE_HEIGHT })
+    setSigModalOpen(false)
+    setAddingText(false)
   }
 
   function deleteExistingText(key: string) {
@@ -349,6 +489,25 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
           page.drawText(a.text, { x: a.pdfX, y: a.pdfY, size: a.style.fontSize, font: useFont, color: hexToRgb(a.style.color) })
         })
 
+      // Draw placed signatures.
+      const embeddedImages: Record<string, Awaited<ReturnType<typeof newDoc.embedPng>>> = {}
+      for (const sig of addedSignatures) {
+        const entry = pageOrder.find((e) => e.id === sig.pageEntryId)
+        if (!entry) continue
+        const newIndex = entry.type === "page" ? origToNewIndex[entry.origIndex] : pageOrder.indexOf(entry)
+        const page = pages[newIndex]
+        if (!page) continue
+        if (!embeddedImages[sig.dataUrl]) {
+          embeddedImages[sig.dataUrl] = await newDoc.embedPng(dataUrlToUint8Array(sig.dataUrl))
+        }
+        page.drawImage(embeddedImages[sig.dataUrl], {
+          x: sig.pdfX,
+          y: sig.pdfYTop - sig.heightPdf,
+          width: sig.widthPdf,
+          height: sig.heightPdf,
+        })
+      }
+
       const editedBytes = await newDoc.save()
       const blob = new Blob([editedBytes as BlobPart], { type: "application/pdf" })
       const url = URL.createObjectURL(blob)
@@ -368,13 +527,16 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
 
   const textItems = currentEntry?.type === "page" ? pageTextItems[currentEntry.origIndex] || [] : []
   const currentAddedTexts = currentEntry ? addedTexts.filter((a) => a.pageEntryId === currentEntry.id) : []
+  const currentAddedSignatures = currentEntry ? addedSignatures.filter((s) => s.pageEntryId === currentEntry.id) : []
 
   const changeCount =
     Object.keys(edits).filter((k) => {
       const [origIdx, i] = k.split("-").map(Number)
       const item = (pageTextItems[origIdx] || [])[i]
       return item && edits[k] !== item.originalText
-    }).length + addedTexts.filter((a) => a.text.trim()).length
+    }).length +
+    addedTexts.filter((a) => a.text.trim()).length +
+    addedSignatures.length
 
   if (files.length === 0) {
     return <p className="text-sm text-text-muted">Upload at least one PDF in the sidebar first.</p>
@@ -410,6 +572,21 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
         </Button>
         <Button variant="outline" onClick={handleAutoRedactPII} disabled={loading || !pdfDoc || redacting} title="Scans visited pages for emails, phone numbers, SSNs, and card numbers">
           {redacting ? "Scanning..." : "🔍 Auto-Redact PII"}
+        </Button>
+        <Button
+          variant={placingSignature ? "default" : "outline"}
+          onClick={() => {
+            if (placingSignature) {
+              setPlacingSignature(null)
+            } else {
+              setSigTab("draw")
+              setTypedSigText("")
+              setSigModalOpen(true)
+            }
+          }}
+          disabled={loading || !pdfDoc}
+        >
+          {placingSignature ? "Click page to place signature..." : "✍️ Add Signature"}
         </Button>
         <Button onClick={handleExport} disabled={exporting || !pdfDoc || changeCount === 0}>
           {exporting ? "Exporting..." : `⬇ Download Edited PDF (${changeCount} change${changeCount === 1 ? "" : "s"})`}
@@ -504,9 +681,58 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
               ref={containerRef}
               onClick={handleCanvasClick}
               className="relative mx-auto w-fit"
-              style={{ cursor: addingText ? "crosshair" : "default" }}
+              style={{ cursor: addingText || placingSignature ? "crosshair" : "default" }}
             >
               <canvas ref={canvasRef} className="block" />
+
+              {currentAddedSignatures.map((sig) => (
+                <div key={sig.id} style={{ position: "absolute", left: sig.left, top: sig.top }}>
+                  <img
+                    src={sig.dataUrl}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSelectedSigId(sig.id === selectedSigId ? null : sig.id)
+                    }}
+                    style={{
+                      width: sig.widthPx,
+                      height: sig.heightPx,
+                      cursor: "pointer",
+                      outline: selectedSigId === sig.id ? "1px dashed #10b981" : "none",
+                    }}
+                  />
+                  {selectedSigId === sig.id && (
+                    <div style={{ display: "flex", gap: 2, marginTop: 2 }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          resizeSignature(sig.id, 0.85)
+                        }}
+                        style={{ fontSize: 11, background: "#334155", color: "white", border: "none", borderRadius: 4, padding: "1px 5px", cursor: "pointer" }}
+                      >
+                        −
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          resizeSignature(sig.id, 1.15)
+                        }}
+                        style={{ fontSize: 11, background: "#334155", color: "white", border: "none", borderRadius: 4, padding: "1px 5px", cursor: "pointer" }}
+                      >
+                        +
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          deleteSignature(sig.id)
+                        }}
+                        style={{ fontSize: 11, background: "#ef4444", color: "white", border: "none", borderRadius: 4, padding: "1px 5px", cursor: "pointer" }}
+                      >
+                        🗑
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
 
               {textItems.map((item) => {
                 const isEditing = editingKey === item.key
@@ -683,6 +909,71 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
             </div>
           </div>
         </>
+      )}
+
+      {sigModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setSigModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-white/10 bg-surface p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="mb-3 text-base font-semibold text-text">Add Signature</h3>
+            <div className="mb-3 flex gap-2">
+              <Button variant={sigTab === "draw" ? "default" : "outline"} onClick={() => setSigTab("draw")}>
+                Draw
+              </Button>
+              <Button variant={sigTab === "type" ? "default" : "outline"} onClick={() => setSigTab("type")}>
+                Type
+              </Button>
+            </div>
+
+            {sigTab === "draw" ? (
+              <>
+                <canvas
+                  ref={sigCanvasRef}
+                  width={SIG_CANVAS_WIDTH}
+                  height={SIG_CANVAS_HEIGHT}
+                  onMouseDown={startDrawing}
+                  onMouseMove={drawStroke}
+                  onMouseUp={stopDrawing}
+                  onMouseLeave={stopDrawing}
+                  className="w-full cursor-crosshair rounded-lg border border-border bg-white"
+                  style={{ touchAction: "none" }}
+                />
+                <div className="mt-3 flex justify-between gap-2">
+                  <Button variant="outline" onClick={clearSigCanvas}>
+                    Clear
+                  </Button>
+                  <Button onClick={confirmDrawnSignature}>Use This Signature</Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <input
+                  autoFocus
+                  value={typedSigText}
+                  onChange={(e) => setTypedSigText(e.target.value)}
+                  placeholder="Type your name"
+                  className="w-full rounded-lg border border-border bg-white px-3 py-2 text-text"
+                />
+                <div
+                  className="mt-3 flex h-20 items-center justify-center rounded-lg border border-border bg-white px-3"
+                  style={{ fontFamily: "'Segoe Script', 'Brush Script MT', cursive", fontSize: 28, color: "black" }}
+                >
+                  {typedSigText || "Preview"}
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <Button onClick={confirmTypedSignature} disabled={!typedSigText.trim()}>
+                    Use This Signature
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )
