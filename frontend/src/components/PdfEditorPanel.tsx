@@ -45,6 +45,19 @@ type PageEntry = { id: string; type: "page"; origIndex: number } | { id: string;
 
 const DEFAULT_STYLE: TextStyle = { fontSize: 12, bold: false, color: "#000000" }
 
+const PII_PATTERNS = [
+  /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/, // email
+  /\b\d{3}-\d{2}-\d{4}\b/, // SSN
+  /\b\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/, // phone
+  /\b(?:\d[ -]?){13,16}\b/, // credit-card-like
+]
+
+const REWRITE_ACTIONS: { label: string; instruction: string }[] = [
+  { label: "✨ Fix Grammar", instruction: "Fix any grammar, spelling, and punctuation mistakes." },
+  { label: "✨ Formal", instruction: "Rewrite this in a more formal, professional tone." },
+  { label: "✨ Casual", instruction: "Rewrite this in a more casual, conversational tone." },
+]
+
 function hexToRgb(hex: string): RGB {
   const clean = hex.replace("#", "")
   const r = parseInt(clean.substring(0, 2), 16) / 255
@@ -71,6 +84,8 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
   const [loading, setLoading] = React.useState(false)
   const [exporting, setExporting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [aiBusyKey, setAiBusyKey] = React.useState<string | null>(null)
+  const [redacting, setRedacting] = React.useState(false)
 
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const containerRef = React.useRef<HTMLDivElement>(null)
@@ -192,6 +207,44 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
   function deleteExistingText(key: string) {
     setEdits((prev) => ({ ...prev, [key]: "" }))
     setEditingKey(null)
+  }
+
+  async function handleAiRewrite(key: string, instruction: string, isAdded: boolean) {
+    const text = isAdded ? addedTexts.find((a) => a.id === key)?.text : edits[key]
+    if (!text || !text.trim()) return
+    setAiBusyKey(key)
+    setError(null)
+    try {
+      const { data } = await api.post("/generate/rewrite-text", { text, instruction })
+      if (isAdded) {
+        setAddedTexts((prev) => prev.map((a) => (a.id === key ? { ...a, text: data.result } : a)))
+      } else {
+        setEdits((prev) => ({ ...prev, [key]: data.result }))
+      }
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || "AI rewrite failed.")
+    } finally {
+      setAiBusyKey(null)
+    }
+  }
+
+  function handleAutoRedactPII() {
+    setRedacting(true)
+    setError(null)
+    let count = 0
+    const newEdits: Record<string, string> = {}
+    Object.values(pageTextItems)
+      .flat()
+      .forEach((item) => {
+        const current = edits[item.key] ?? item.originalText
+        if (current && PII_PATTERNS.some((p) => p.test(current))) {
+          newEdits[item.key] = ""
+          count++
+        }
+      })
+    setEdits((prev) => ({ ...prev, ...newEdits }))
+    setError(count > 0 ? null : "No PII patterns (emails, phone numbers, SSNs, card numbers) found on visited pages.")
+    setRedacting(false)
   }
 
   function movePosition(delta: number) {
@@ -355,6 +408,9 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
         >
           {addingText ? "Click page to place text..." : "➕ Add Text"}
         </Button>
+        <Button variant="outline" onClick={handleAutoRedactPII} disabled={loading || !pdfDoc || redacting} title="Scans visited pages for emails, phone numbers, SSNs, and card numbers">
+          {redacting ? "Scanning..." : "🔍 Auto-Redact PII"}
+        </Button>
         <Button onClick={handleExport} disabled={exporting || !pdfDoc || changeCount === 0}>
           {exporting ? "Exporting..." : `⬇ Download Edited PDF (${changeCount} change${changeCount === 1 ? "" : "s"})`}
         </Button>
@@ -479,6 +535,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                       }}
                     />
                     <button
+                      onMouseDown={(e) => e.preventDefault()}
                       onClick={() => deleteExistingText(item.key)}
                       title="Delete this text"
                       style={{
@@ -496,6 +553,38 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                     >
                       🗑
                     </button>
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 0,
+                        top: item.height + 2,
+                        display: "flex",
+                        gap: 2,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {REWRITE_ACTIONS.map((action) => (
+                        <button
+                          key={action.label}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleAiRewrite(item.key, action.instruction, false)}
+                          disabled={aiBusyKey === item.key}
+                          title={action.instruction}
+                          style={{
+                            fontSize: 10,
+                            background: "#10b981",
+                            color: "white",
+                            border: "none",
+                            borderRadius: 4,
+                            padding: "1px 5px",
+                            cursor: aiBusyKey === item.key ? "wait" : "pointer",
+                            opacity: aiBusyKey === item.key ? 0.6 : 1,
+                          }}
+                        >
+                          {aiBusyKey === item.key ? "…" : action.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 ) : (
                   <div
@@ -524,29 +613,50 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
 
               {currentAddedTexts.map((a) =>
                 editingKey === a.id ? (
-                  <input
-                    key={a.id}
-                    autoFocus
-                    value={a.text}
-                    onChange={(e) =>
-                      setAddedTexts((prev) => prev.map((t) => (t.id === a.id ? { ...t, text: e.target.value } : t)))
-                    }
-                    onBlur={() => setEditingKey(null)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") setEditingKey(null)
-                    }}
-                    style={{
-                      position: "absolute",
-                      left: a.left,
-                      top: a.top - a.style.fontSize,
-                      width: 180,
-                      fontSize: a.style.fontSize,
-                      fontWeight: a.style.bold ? 700 : 400,
-                      color: a.style.color,
-                      border: "1px solid #10b981",
-                      background: "white",
-                    }}
-                  />
+                  <div key={a.id} style={{ position: "absolute", left: a.left, top: a.top - a.style.fontSize }}>
+                    <input
+                      autoFocus
+                      value={a.text}
+                      onChange={(e) =>
+                        setAddedTexts((prev) => prev.map((t) => (t.id === a.id ? { ...t, text: e.target.value } : t)))
+                      }
+                      onBlur={() => setEditingKey(null)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") setEditingKey(null)
+                      }}
+                      style={{
+                        width: 180,
+                        fontSize: a.style.fontSize,
+                        fontWeight: a.style.bold ? 700 : 400,
+                        color: a.style.color,
+                        border: "1px solid #10b981",
+                        background: "white",
+                      }}
+                    />
+                    <div style={{ display: "flex", gap: 2, marginTop: 2, whiteSpace: "nowrap" }}>
+                      {REWRITE_ACTIONS.map((action) => (
+                        <button
+                          key={action.label}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleAiRewrite(a.id, action.instruction, true)}
+                          disabled={aiBusyKey === a.id}
+                          title={action.instruction}
+                          style={{
+                            fontSize: 10,
+                            background: "#10b981",
+                            color: "white",
+                            border: "none",
+                            borderRadius: 4,
+                            padding: "1px 5px",
+                            cursor: aiBusyKey === a.id ? "wait" : "pointer",
+                            opacity: aiBusyKey === a.id ? 0.6 : 1,
+                          }}
+                        >
+                          {aiBusyKey === a.id ? "…" : action.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ) : (
                   <div
                     key={a.id}

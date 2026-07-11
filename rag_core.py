@@ -240,3 +240,20 @@ def generate_research_report(topic, vector_store, api_key, progress_callback=Non
         RESEARCH_SYNTHESIS_PROMPT.format(topic=topic, findings="\n\n".join(findings)), api_key
     )
     return report, sub_questions
+
+
+REWRITE_TEXT_PROMPT = """Rewrite the text below according to this instruction: "{instruction}"
+
+Preserve the original meaning. Output ONLY the rewritten text — no quotes, no commentary, no explanation, and keep
+it roughly the same length as the original unless the instruction requires otherwise.
+
+Original text:
+{text}
+
+Rewritten text:"""
+
+
+def rewrite_text(text, instruction, api_key):
+    prompt = REWRITE_TEXT_PROMPT.format(instruction=instruction, text=text)
+    result = generate_with_gemini(prompt, api_key, temperature=0.4)
+    return result.strip().strip('"')

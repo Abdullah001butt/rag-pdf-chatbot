@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 import rag_core
 from deps import get_db, get_current_user, get_user_api_key
-from schemas import GenerateRequest, CompareRequest, ResearchRequest
+from schemas import GenerateRequest, CompareRequest, ResearchRequest, RewriteTextRequest, RewriteTextResponse
 from usage_guard import enforce_action, enforce_not_locked
 from billing import record_usage
 from rag_pipeline import get_or_build_vector_store, get_document_text, resolve_api_key
@@ -121,3 +121,19 @@ def research(
         raise HTTPException(status_code=422, detail=f"Research generation failed: {e}")
     record_usage(db, user.id, "research")
     return {"report": report, "sub_questions": sub_questions}
+
+
+@router.post("/rewrite-text", response_model=RewriteTextResponse)
+def rewrite_text(
+    payload: RewriteTextRequest,
+    user=Depends(get_current_user),
+    db=Depends(get_db),
+    user_api_key: str | None = Depends(get_user_api_key),
+):
+    enforce_action(db, user, "chat")
+    api_key = _require_api_key(user_api_key)
+    if not payload.text.strip():
+        raise HTTPException(status_code=400, detail="No text to rewrite.")
+    result = rag_core.rewrite_text(payload.text, payload.instruction, api_key)
+    record_usage(db, user.id, "chat")
+    return RewriteTextResponse(result=result)

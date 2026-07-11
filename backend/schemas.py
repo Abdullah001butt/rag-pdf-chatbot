@@ -104,4 +104,13 @@ class ResearchRequest(BaseModel):
     topic: str
 
 
+class RewriteTextRequest(BaseModel):
+    text: str
+    instruction: str
+
+
+class RewriteTextResponse(BaseModel):
+    result: str
+
+
 TokenResponse.model_rebuild()
