@@ -32,6 +32,10 @@ export function setTokens(accessToken: string, refreshToken: string) {
 export function clearTokens() {
   localStorage.removeItem(ACCESS_TOKEN_KEY)
   localStorage.removeItem(REFRESH_TOKEN_KEY)
+  // Also drop the cached user object — otherwise AuthContext sees a stale
+  // "logged in" user with no valid tokens, bounces to /dashboard, 401s again,
+  // fails to refresh (no refresh token left), and redirects to /login in a loop.
+  localStorage.removeItem("documind_user")
 }
 
 export const api = axios.create({
@@ -86,7 +90,9 @@ api.interceptors.response.use(
         return api(original)
       }
       clearTokens()
-      window.location.href = "/login"
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login"
+      }
     }
     return Promise.reject(error)
   }
