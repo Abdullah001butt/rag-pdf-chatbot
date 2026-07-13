@@ -34,7 +34,7 @@ services:
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
       - key: STRIPE_PRO_PRICE_AMOUNT
-        value: "999"
+        value: "499"
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM_EMAIL

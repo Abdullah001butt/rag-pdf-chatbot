@@ -11,7 +11,7 @@ CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:5
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
-STRIPE_PRO_PRICE_AMOUNT = int(os.getenv("STRIPE_PRO_PRICE_AMOUNT", "999"))
+STRIPE_PRO_PRICE_AMOUNT = int(os.getenv("STRIPE_PRO_PRICE_AMOUNT", "499"))
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").strip().rstrip("/")
 
 DATABASE_URL = os.getenv("DATABASE_URL")  # e.g. postgresql://user:pass@host:5432/documind

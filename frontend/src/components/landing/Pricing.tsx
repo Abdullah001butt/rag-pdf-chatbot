@@ -12,7 +12,7 @@ const TIERS = [
   },
   {
     label: "Pro",
-    price: "$9.99",
+    price: "$4.99",
     suffix: "/ month",
     badge: "Best Value",
     // Keep in sync with backend/.env STRIPE_PRO_PRICE_AMOUNT (cents)
