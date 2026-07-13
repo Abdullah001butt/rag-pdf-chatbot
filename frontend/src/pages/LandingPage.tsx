@@ -7,6 +7,7 @@ import { FeatureSplit } from "@/components/landing/FeatureSplit"
 import { EditorSuite } from "@/components/landing/EditorSuite"
 import { Comparison } from "@/components/landing/Comparison"
 import { Pricing } from "@/components/landing/Pricing"
+import { Security } from "@/components/landing/Security"
 import { Faq } from "@/components/landing/Faq"
 import { FinalCta } from "@/components/landing/FinalCta"
 import { LandingFooter } from "@/components/landing/LandingFooter"
@@ -23,6 +24,7 @@ export default function LandingPage() {
       <EditorSuite />
       <Comparison />
       <Pricing />
+      <Security />
       <Faq />
       <FinalCta />
       <LandingFooter />
