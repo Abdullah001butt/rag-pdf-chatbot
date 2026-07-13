@@ -1,5 +1,8 @@
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
+import { Typewriter } from "@/components/landing/Typewriter"
+
+const TYPED_WORDS = ["summarized?", "signed?", "quizzed?", "redacted?", "filled out?", "compared?"]
 
 export function FinalCta() {
   const navigate = useNavigate()
@@ -29,9 +32,9 @@ export function FinalCta() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl"
         >
-          Ready to understand your{" "}
+          Ready to get your PDF{" "}
           <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
-            first document?
+            <Typewriter words={TYPED_WORDS} cursorClassName="bg-emerald-400" />
           </span>
         </motion.h2>
         <motion.p

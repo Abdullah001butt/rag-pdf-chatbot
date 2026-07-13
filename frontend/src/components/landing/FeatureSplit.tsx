@@ -1,4 +1,7 @@
 import { motion } from "framer-motion"
+import { Typewriter } from "@/components/landing/Typewriter"
+
+const TYPED_WORDS = ["the facts.", "the source.", "the point.", "the answer."]
 
 const ITEMS = [
   { n: "01", title: "Instant Summary", body: "The point in seconds" },
@@ -21,7 +24,9 @@ export function FeatureSplit() {
           <h2 className="text-5xl font-extrabold uppercase leading-tight tracking-tight text-white sm:text-6xl">
             Fast to
             <br />
-            <span className="text-emerald-400">the facts.</span>
+            <span className="text-emerald-400">
+              <Typewriter words={TYPED_WORDS} cursorClassName="bg-emerald-400" />
+            </span>
           </h2>
           <div className="mt-6 h-px w-16 bg-white/20" />
           <p className="mt-6 text-sm font-semibold uppercase tracking-widest text-white/40">

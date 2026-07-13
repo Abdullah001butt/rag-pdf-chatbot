@@ -1,4 +1,7 @@
 import { motion } from "framer-motion"
+import { Typewriter } from "@/components/landing/Typewriter"
+
+const TYPED_WORDS = ["Edit it.", "Sign it.", "Redact it.", "Fill it.", "OCR it."]
 
 const TOOLS = [
   {
@@ -38,7 +41,10 @@ export function EditorSuite() {
     <section id="editor" className="border-y border-white/10 bg-white/[0.015] px-6 py-28 text-center">
       <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">PDF Editor Suite</p>
       <h2 className="mx-auto max-w-2xl text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-        Don't just read it. Edit it.
+        Don't just read it.{" "}
+        <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
+          <Typewriter words={TYPED_WORDS} cursorClassName="bg-emerald-400" />
+        </span>
       </h2>
       <p className="mx-auto mt-4 max-w-xl text-white/50">
         A full editor built into your document workflow — no separate app, no re-uploading.

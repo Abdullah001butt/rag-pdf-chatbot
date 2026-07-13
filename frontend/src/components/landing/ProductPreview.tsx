@@ -1,6 +1,8 @@
 import { motion } from "framer-motion"
+import { Typewriter } from "@/components/landing/Typewriter"
 
 const TABS = ["Chat", "Summaries", "Study Notes", "Quiz", "Flashcards", "Compare", "Research", "Editor"]
+const TYPED_WORDS = ["trust.", "verify.", "cite.", "act on."]
 
 export function ProductPreview() {
   return (
@@ -8,7 +10,10 @@ export function ProductPreview() {
       <div className="mx-auto max-w-5xl text-center">
         <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">See it in action</p>
         <h2 className="mx-auto max-w-2xl text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-          Answers you can trust.
+          Answers you can{" "}
+          <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
+            <Typewriter words={TYPED_WORDS} cursorClassName="bg-emerald-400" />
+          </span>
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-white/50">
           Every response is grounded in your actual documents, with citations linking back to the exact page.

@@ -1,5 +1,8 @@
 import { motion } from "framer-motion"
 import * as React from "react"
+import { Typewriter } from "@/components/landing/Typewriter"
+
+const TYPED_WORDS = ["answered.", "explained.", "clarified."]
 
 const FAQS = [
   {
@@ -47,7 +50,12 @@ export function Faq() {
     <section id="faq" className="px-6 py-28">
       <div className="mx-auto max-w-2xl text-center">
         <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">FAQ</p>
-        <h2 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">Questions, answered.</h2>
+        <h2 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+          Questions,{" "}
+          <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
+            <Typewriter words={TYPED_WORDS} cursorClassName="bg-emerald-400" />
+          </span>
+        </h2>
       </div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}

@@ -1,5 +1,8 @@
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
+import { Typewriter } from "@/components/landing/Typewriter"
+
+const TYPED_WORDS = ["ready.", "you want.", "needed."]
 
 const TIERS = [
   {
@@ -41,7 +44,10 @@ export function Pricing() {
     <section id="pricing" className="px-6 py-28 text-center">
       <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">Pricing</p>
       <h2 className="mx-auto max-w-2xl text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-        Start free. Upgrade when ready.
+        Start free. Upgrade when{" "}
+        <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
+          <Typewriter words={TYPED_WORDS} cursorClassName="bg-emerald-400" />
+        </span>
       </h2>
       <p className="mx-auto mt-4 max-w-xl text-white/50">
         Pro is built for repeat work — unlimited usage and every feature unlocked.
