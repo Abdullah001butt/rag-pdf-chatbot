@@ -1,5 +1,6 @@
 import * as React from "react"
 import { api, type QuizQuestion } from "@/lib/api"
+import { useLanguage } from "@/context/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 import { DownloadButton } from "@/components/DownloadButton"
@@ -11,6 +12,7 @@ interface QuizPanelProps {
 }
 
 export function QuizPanel({ files, locked }: QuizPanelProps) {
+  const { t } = useLanguage()
   const [source, setSource] = React.useState(files[0] || "")
   const [numQuestions, setNumQuestions] = React.useState(5)
   const [quiz, setQuiz] = React.useState<QuizQuestion[] | null>(null)
@@ -26,13 +28,13 @@ export function QuizPanel({ files, locked }: QuizPanelProps) {
   if (locked) {
     return (
       <div className="rounded-2xl border border-warning/30 bg-warning/10 p-6 text-sm text-text">
-        🔒 <strong>Quiz & MCQ Generator</strong> is available on the Pro plan. Upgrade from the sidebar to unlock it.
+        {t("quiz.locked")}
       </div>
     )
   }
 
   if (files.length === 0) {
-    return <p className="text-sm text-text-muted">Upload at least one PDF in the sidebar first.</p>
+    return <p className="text-sm text-text-muted">{t("common.uploadFirst")}</p>
   }
 
   async function handleGenerate() {
@@ -55,7 +57,7 @@ export function QuizPanel({ files, locked }: QuizPanelProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold text-text">Quiz & MCQ Generator</h2>
+      <h2 className="text-lg font-semibold text-text">{t("quiz.title")}</h2>
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <select
@@ -80,11 +82,11 @@ export function QuizPanel({ files, locked }: QuizPanelProps) {
           className="w-24 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text disabled:opacity-50"
         />
         <Button onClick={handleGenerate} disabled={busy} className="shrink-0">
-          {busy ? "Generating..." : "Generate Quiz"}
+          {busy ? t("quiz.generating") : t("quiz.generate")}
         </Button>
       </div>
 
-      {busy && <LoadingState label="Generating quiz questions from your document..." />}
+      {busy && <LoadingState label={t("quiz.generating")} />}
       {error && <p className="text-sm text-danger">{error}</p>}
 
       {quiz && (
@@ -131,7 +133,7 @@ export function QuizPanel({ files, locked }: QuizPanelProps) {
                 </div>
                 {submitted && (
                   <p className="mt-2 text-xs text-text-muted">
-                    {picked === q.correct ? "✓ Correct" : `✗ Correct answer: ${q.correct}`} — {q.explanation}
+                    {picked === q.correct ? t("quiz.correct") : `${t("quiz.correctAnswerPrefix")} ${q.correct}`} — {q.explanation}
                   </p>
                 )}
               </div>
@@ -141,15 +143,15 @@ export function QuizPanel({ files, locked }: QuizPanelProps) {
           <div className="flex flex-wrap items-center gap-3">
             {!submitted ? (
               <Button onClick={() => setSubmitted(true)} disabled={Object.keys(answers).length !== quiz.length}>
-                Check Answers
+                {t("quiz.checkAnswers")}
               </Button>
             ) : (
               <p className="text-sm font-semibold text-text">
-                Score: {score} / {quiz.length}
+                {t("quiz.score")}: {score} / {quiz.length}
               </p>
             )}
             <DownloadButton
-              label="Download Quiz (.md)"
+              label={t("quiz.download")}
               filename={`${source.replace(/\.[^/.]+$/, "")}_quiz.md`}
               content={buildQuizMarkdown(source, quiz)}
             />

@@ -3,6 +3,7 @@ import * as pdfjsLib from "pdfjs-dist"
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url"
 import { PDFDocument, PDFTextField, PDFCheckBox, PDFDropdown, PDFRadioGroup, PDFOptionList } from "pdf-lib"
 import { api } from "@/lib/api"
+import { useLanguage } from "@/context/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 
@@ -39,6 +40,7 @@ const TEXT_FIELD_PX = { width: 150, height: 24 }
 const CHECKBOX_FIELD_PX = { width: 18, height: 18 }
 
 export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
+  const { t } = useLanguage()
   const [source, setSource] = React.useState(files[0] || "")
   const [pdfBytes, setPdfBytes] = React.useState<ArrayBuffer | null>(null)
   const [mode, setMode] = React.useState<"fill" | "design">("fill")
@@ -266,14 +268,14 @@ export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
   }
 
   if (files.length === 0) {
-    return <p className="text-sm text-text-muted">Upload at least one PDF in the sidebar first.</p>
+    return <p className="text-sm text-text-muted">{t("common.uploadFirst")}</p>
   }
 
   const currentDesignFields = designFields.filter((f) => f.pageIndex === currentPage)
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold text-text">Form Filler</h2>
+      <h2 className="text-lg font-semibold text-text">{t("formFillerPanel.title")}</h2>
 
       <div className="flex flex-wrap items-center gap-2">
         <select
@@ -289,10 +291,10 @@ export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
           ))}
         </select>
         <Button variant={mode === "fill" ? "default" : "outline"} onClick={() => setMode("fill")}>
-          Fill Existing Fields
+          {t("formFillerPanel.fillMode")}
         </Button>
         <Button variant={mode === "design" ? "default" : "outline"} onClick={() => setMode("design")}>
-          Add New Fields
+          {t("formFillerPanel.designMode")}
         </Button>
       </div>
 

@@ -1,6 +1,7 @@
 import * as React from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
+import { useLanguage } from "@/context/LanguageContext"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -10,25 +11,25 @@ export default function ResetPasswordPage() {
   const token = searchParams.get("token") || ""
   const [newPassword, setNewPassword] = React.useState("")
   const [confirmPassword, setConfirmPassword] = React.useState("")
-  const [message, setMessage] = React.useState<string | null>(null)
+  const [done, setDone] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [busy, setBusy] = React.useState(false)
   const navigate = useNavigate()
+  const { t } = useLanguage()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    setMessage(null)
 
     if (newPassword !== confirmPassword) {
-      setError("Passwords don't match.")
+      setError(t("auth.passwordMismatch"))
       return
     }
 
     setBusy(true)
     try {
-      const { data } = await api.post("/auth/reset-password", { token, new_password: newPassword })
-      setMessage(data.message)
+      await api.post("/auth/reset-password", { token, new_password: newPassword })
+      setDone(true)
     } catch (err: any) {
       setError(err?.response?.data?.detail || "Something went wrong. Please try again.")
     } finally {
@@ -39,7 +40,7 @@ export default function ResetPasswordPage() {
   if (!token) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4 text-center">
-        <p className="text-sm text-danger">This reset link is missing a token. Please request a new one.</p>
+        <p className="text-sm text-danger">{t("auth.missingToken")}</p>
       </div>
     )
   }
@@ -50,41 +51,41 @@ export default function ResetPasswordPage() {
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
           <img src="/logo.png" alt="Documind AI" className="h-14 w-auto" onError={(e) => (e.currentTarget.style.display = "none")} />
           <div>
-            <h1 className="text-xl font-bold text-text">Choose a new password</h1>
+            <h1 className="text-xl font-bold text-text">{t("auth.newPasswordTitle")}</h1>
           </div>
         </div>
 
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold text-text">Reset Password</h2>
+            <h2 className="text-sm font-semibold text-text">{t("auth.resetPasswordHeading")}</h2>
           </CardHeader>
 
-          {message ? (
+          {done ? (
             <div className="flex flex-col gap-3">
-              <p className="text-sm text-success">{message}</p>
+              <p className="text-sm text-success">{t("auth.resetSuccess")}</p>
               <Button className="w-full" onClick={() => navigate("/login")}>
-                Log In
+                {t("auth.login")}
               </Button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
               <Input
                 type="password"
-                placeholder="New password"
+                placeholder={t("auth.newPassword")}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
               />
               <Input
                 type="password"
-                placeholder="Confirm new password"
+                placeholder={t("auth.confirmPassword")}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
               {error && <p className="text-sm text-danger">{error}</p>}
               <Button type="submit" disabled={busy} className="mt-2 w-full">
-                {busy ? "Resetting..." : "Reset Password"}
+                {busy ? t("auth.resetting") : t("auth.resetPassword")}
               </Button>
             </form>
           )}

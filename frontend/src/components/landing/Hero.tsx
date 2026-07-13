@@ -1,9 +1,17 @@
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { Typewriter } from "@/components/landing/Typewriter"
+import { useLanguage } from "@/context/LanguageContext"
 
-const HEADLINE_WORDS = ["Your", "PDF,"]
-const TYPED_WORDS = ["summarized.", "signed.", "quizzed.", "redacted.", "filled out.", "compared.", "chatted with."]
+const TYPED_KEYS = [
+  "hero.typed.summarized",
+  "hero.typed.signed",
+  "hero.typed.quizzed",
+  "hero.typed.redacted",
+  "hero.typed.filledOut",
+  "hero.typed.compared",
+  "hero.typed.chattedWith",
+]
 
 const wordVariants = {
   hidden: { opacity: 0, y: 24 },
@@ -12,6 +20,8 @@ const wordVariants = {
 
 export function Hero() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
+  const typedWords = TYPED_KEYS.map((k) => t(k))
 
   return (
     <section className="relative overflow-hidden px-6 pb-28 pt-24 text-center">
@@ -32,7 +42,7 @@ export function Hero() {
         className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-emerald-400"
       >
         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-AI Chat, Editing &amp; E-Signatures for Any PDF
+        {t("hero.badge")}
       </motion.div>
 
       <motion.h1
@@ -41,22 +51,18 @@ AI Chat, Editing &amp; E-Signatures for Any PDF
         transition={{ staggerChildren: 0.08, delayChildren: 0.1 }}
         className="mx-auto max-w-4xl text-5xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl md:text-7xl"
       >
-        {HEADLINE_WORDS.map((word) => (
-          <motion.span
-            key={word}
-            variants={wordVariants}
-            transition={{ duration: 0.5 }}
-            className="mr-4 inline-block"
-          >
-            {word}
-          </motion.span>
-        ))}
+        <motion.span variants={wordVariants} transition={{ duration: 0.5 }} className="mr-4 inline-block">
+          {t("hero.headlinePrefix")}
+        </motion.span>
+        <motion.span variants={wordVariants} transition={{ duration: 0.5 }} className="mr-4 inline-block">
+          {t("hero.headlineMid")}
+        </motion.span>
         <motion.span
           variants={wordVariants}
           transition={{ duration: 0.5 }}
           className="block bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent"
         >
-          <Typewriter words={TYPED_WORDS} cursorClassName="bg-emerald-400" />
+          <Typewriter words={typedWords} cursorClassName="bg-emerald-400" />
         </motion.span>
       </motion.h1>
 
@@ -66,8 +72,7 @@ AI Chat, Editing &amp; E-Signatures for Any PDF
         transition={{ duration: 0.6, delay: 0.4 }}
         className="mx-auto mt-6 max-w-2xl text-lg text-white/50"
       >
-        Chat, summarize, quiz yourself, compare documents, e-sign, fill forms, redact PII, and edit
-        text — all in one place, with every answer backed by a citation.
+        {t("hero.subtitle")}
       </motion.p>
 
       <motion.div
@@ -82,7 +87,7 @@ AI Chat, Editing &amp; E-Signatures for Any PDF
           onClick={() => navigate("/login")}
           className="group flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-black shadow-lg shadow-emerald-500/10"
         >
-          Get Started Free
+          {t("hero.ctaPrimary")}
           <span aria-hidden className="transition-transform group-hover:translate-x-1">→</span>
         </motion.button>
         <motion.button
@@ -91,7 +96,7 @@ AI Chat, Editing &amp; E-Signatures for Any PDF
           onClick={() => navigate("/login")}
           className="rounded-full border border-white/15 px-7 py-3.5 text-sm font-semibold text-white/80 transition-colors hover:border-white/30 hover:text-white"
         >
-          Try sample document
+          {t("hero.ctaSecondary")}
         </motion.button>
       </motion.div>
     </section>

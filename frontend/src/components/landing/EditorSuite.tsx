@@ -1,59 +1,37 @@
 import { motion } from "framer-motion"
 import { Typewriter } from "@/components/landing/Typewriter"
+import { useLanguage } from "@/context/LanguageContext"
 
-const TYPED_WORDS = ["Edit it.", "Sign it.", "Redact it.", "Fill it.", "OCR it."]
+const TYPED_KEYS = ["editor.typed.edit", "editor.typed.sign", "editor.typed.redact", "editor.typed.fill", "editor.typed.ocr"]
 
 const TOOLS = [
-  {
-    icon: "✏️",
-    title: "Click-to-Edit Text",
-    body: "Fix typos, dates, and names directly on the page — no re-export from another tool.",
-  },
-  {
-    icon: "✍️",
-    title: "E-Signatures",
-    body: "Draw or type a signature, place it anywhere, and it's baked into the exported PDF.",
-  },
-  {
-    icon: "📝",
-    title: "Form Filling",
-    body: "Fill existing fillable PDFs, or click to add new fillable fields to any flat PDF.",
-  },
-  {
-    icon: "🔍",
-    title: "OCR for Scans",
-    body: "Scanned, image-only pages become editable text with one click — powered by Gemini vision.",
-  },
-  {
-    icon: "✨",
-    title: "AI Rewriting",
-    body: "Select any text and fix grammar, or shift the tone formal or casual, instantly.",
-  },
-  {
-    icon: "🛡️",
-    title: "PII Auto-Redact",
-    body: "Scan a page for emails, phone numbers, SSNs, and card numbers, then redact them in one click.",
-  },
+  { icon: "✏️", titleKey: "editor.tool1.title", bodyKey: "editor.tool1.body" },
+  { icon: "✍️", titleKey: "editor.tool2.title", bodyKey: "editor.tool2.body" },
+  { icon: "📝", titleKey: "editor.tool3.title", bodyKey: "editor.tool3.body" },
+  { icon: "🔍", titleKey: "editor.tool4.title", bodyKey: "editor.tool4.body" },
+  { icon: "✨", titleKey: "editor.tool5.title", bodyKey: "editor.tool5.body" },
+  { icon: "🛡️", titleKey: "editor.tool6.title", bodyKey: "editor.tool6.body" },
 ]
 
 export function EditorSuite() {
+  const { t } = useLanguage()
+  const typedWords = TYPED_KEYS.map((k) => t(k))
+
   return (
     <section id="editor" className="border-y border-white/10 bg-white/[0.015] px-6 py-28 text-center">
-      <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">PDF Editor Suite</p>
+      <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">{t("editor.eyebrow")}</p>
       <h2 className="mx-auto max-w-2xl text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-        Don't just read it.{" "}
+        {t("editor.headlinePrefix")}{" "}
         <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
-          <Typewriter words={TYPED_WORDS} cursorClassName="bg-emerald-400" />
+          <Typewriter words={typedWords} cursorClassName="bg-emerald-400" />
         </span>
       </h2>
-      <p className="mx-auto mt-4 max-w-xl text-white/50">
-        A full editor built into your document workflow — no separate app, no re-uploading.
-      </p>
+      <p className="mx-auto mt-4 max-w-xl text-white/50">{t("editor.subtitle")}</p>
 
       <div className="mx-auto mt-16 grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {TOOLS.map((tool, i) => (
           <motion.div
-            key={tool.title}
+            key={tool.titleKey}
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
@@ -63,8 +41,8 @@ export function EditorSuite() {
             <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-lg">
               {tool.icon}
             </div>
-            <h3 className="mb-2 text-base font-bold text-white">{tool.title}</h3>
-            <p className="text-sm leading-relaxed text-white/50">{tool.body}</p>
+            <h3 className="mb-2 text-base font-bold text-white">{t(tool.titleKey)}</h3>
+            <p className="text-sm leading-relaxed text-white/50">{t(tool.bodyKey)}</p>
           </motion.div>
         ))}
       </div>

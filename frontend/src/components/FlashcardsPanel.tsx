@@ -1,5 +1,6 @@
 import * as React from "react"
 import { api, type Flashcard } from "@/lib/api"
+import { useLanguage } from "@/context/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 import { DownloadButton } from "@/components/DownloadButton"
@@ -11,6 +12,7 @@ interface FlashcardsPanelProps {
 }
 
 export function FlashcardsPanel({ files, locked }: FlashcardsPanelProps) {
+  const { t } = useLanguage()
   const [source, setSource] = React.useState(files[0] || "")
   const [numCards, setNumCards] = React.useState(10)
   const [cards, setCards] = React.useState<Flashcard[] | null>(null)
@@ -26,13 +28,13 @@ export function FlashcardsPanel({ files, locked }: FlashcardsPanelProps) {
   if (locked) {
     return (
       <div className="rounded-2xl border border-warning/30 bg-warning/10 p-6 text-sm text-text">
-        🔒 <strong>Flashcard Generator</strong> is available on the Pro plan. Upgrade from the sidebar to unlock it.
+        {t("flashcards.locked")}
       </div>
     )
   }
 
   if (files.length === 0) {
-    return <p className="text-sm text-text-muted">Upload at least one PDF in the sidebar first.</p>
+    return <p className="text-sm text-text-muted">{t("common.uploadFirst")}</p>
   }
 
   async function handleGenerate() {
@@ -55,7 +57,7 @@ export function FlashcardsPanel({ files, locked }: FlashcardsPanelProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold text-text">Flashcard Generator</h2>
+      <h2 className="text-lg font-semibold text-text">{t("flashcards.title")}</h2>
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <select
@@ -80,17 +82,17 @@ export function FlashcardsPanel({ files, locked }: FlashcardsPanelProps) {
           className="w-24 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text disabled:opacity-50"
         />
         <Button onClick={handleGenerate} disabled={busy} className="shrink-0">
-          {busy ? "Generating..." : "Generate Flashcards"}
+          {busy ? t("flashcards.generating") : t("flashcards.generate")}
         </Button>
       </div>
 
-      {busy && <LoadingState label="Generating flashcards from your document..." />}
+      {busy && <LoadingState label={t("flashcards.generating")} />}
       {error && <p className="text-sm text-danger">{error}</p>}
 
       {card && cards && (
         <div className="flex flex-col gap-3">
           <div className="text-center text-xs font-semibold uppercase tracking-wide text-text-muted">
-            {flipped ? "Answer" : "Question"} · Card {index + 1}/{cards.length}
+            {flipped ? t("flashcards.answer") : t("flashcards.question")} · {t("flashcards.card")} {index + 1}/{cards.length}
           </div>
           <button
             onClick={() => setFlipped((f) => !f)}
@@ -107,10 +109,10 @@ export function FlashcardsPanel({ files, locked }: FlashcardsPanelProps) {
                 setFlipped(false)
               }}
             >
-              ⬅ Previous
+              {t("flashcards.previous")}
             </Button>
             <Button variant="outline" onClick={() => setFlipped((f) => !f)}>
-              🔄 Flip
+              {t("flashcards.flipBtn")}
             </Button>
             <Button
               variant="outline"
@@ -120,12 +122,12 @@ export function FlashcardsPanel({ files, locked }: FlashcardsPanelProps) {
                 setFlipped(false)
               }}
             >
-              Next ➡
+              {t("flashcards.next")}
             </Button>
           </div>
           <div className="flex justify-center">
             <DownloadButton
-              label="Download Flashcards (.csv)"
+              label={t("flashcards.download")}
               filename={`${source.replace(/\.[^/.]+$/, "")}_flashcards.csv`}
               content={buildFlashcardsCsv(cards)}
               mime="text/csv"

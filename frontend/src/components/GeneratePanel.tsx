@@ -1,5 +1,6 @@
 import * as React from "react"
 import { api } from "@/lib/api"
+import { useLanguage } from "@/context/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 import { DownloadButton } from "@/components/DownloadButton"
@@ -24,6 +25,7 @@ export function GeneratePanel({
   exportTitle,
   exportFilenameSuffix,
 }: GeneratePanelProps) {
+  const { t } = useLanguage()
   const [source, setSource] = React.useState(files[0] || "")
   const [result, setResult] = React.useState<string | null>(null)
   const [busy, setBusy] = React.useState(false)
@@ -49,7 +51,7 @@ export function GeneratePanel({
   }
 
   if (files.length === 0) {
-    return <p className="text-sm text-text-muted">Upload at least one PDF in the sidebar first.</p>
+    return <p className="text-sm text-text-muted">{t("common.uploadFirst")}</p>
   }
 
   return (
@@ -69,7 +71,7 @@ export function GeneratePanel({
           ))}
         </select>
         <Button onClick={handleGenerate} disabled={busy} className="shrink-0">
-          {busy ? "Generating..." : buttonLabel}
+          {busy ? t("common.generating") : buttonLabel}
         </Button>
       </div>
 
@@ -83,9 +85,9 @@ export function GeneratePanel({
           </div>
           <div>
             <DownloadButton
-              label={`Download ${exportTitle} (.md)`}
+              label={`${t("common.download")} ${exportTitle} (.md)`}
               filename={`${source.replace(/\.[^/.]+$/, "")}_${exportFilenameSuffix}.md`}
-              content={buildExportMarkdown(exportTitle, { "Source Document": source }, result)}
+              content={buildExportMarkdown(exportTitle, { [t("common.sourceDocument")]: source }, result)}
             />
           </div>
         </>

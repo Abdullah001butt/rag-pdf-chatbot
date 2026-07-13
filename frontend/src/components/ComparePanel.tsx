@@ -1,5 +1,6 @@
 import * as React from "react"
 import { api } from "@/lib/api"
+import { useLanguage } from "@/context/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 import { DownloadButton } from "@/components/DownloadButton"
@@ -11,6 +12,7 @@ interface ComparePanelProps {
 }
 
 export function ComparePanel({ files, locked }: ComparePanelProps) {
+  const { t } = useLanguage()
   const [sourceA, setSourceA] = React.useState(files[0] || "")
   const [sourceB, setSourceB] = React.useState(files[1] || "")
   const [result, setResult] = React.useState<string | null>(null)
@@ -25,18 +27,18 @@ export function ComparePanel({ files, locked }: ComparePanelProps) {
   if (locked) {
     return (
       <div className="rounded-2xl border border-warning/30 bg-warning/10 p-6 text-sm text-text">
-        🔒 <strong>Document Comparison</strong> is available on the Pro plan. Upgrade from the sidebar to unlock it.
+        {t("compare.locked")}
       </div>
     )
   }
 
   if (files.length < 2) {
-    return <p className="text-sm text-text-muted">Upload at least two PDFs in the sidebar to compare them.</p>
+    return <p className="text-sm text-text-muted">{t("compare.uploadTwo")}</p>
   }
 
   async function handleCompare() {
     if (sourceA === sourceB) {
-      setError("Choose two different documents.")
+      setError(t("compare.chooseDifferent"))
       return
     }
     setBusy(true)
@@ -54,7 +56,7 @@ export function ComparePanel({ files, locked }: ComparePanelProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold text-text">Document Comparison</h2>
+      <h2 className="text-lg font-semibold text-text">{t("compare.title")}</h2>
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <select
@@ -82,11 +84,11 @@ export function ComparePanel({ files, locked }: ComparePanelProps) {
           ))}
         </select>
         <Button onClick={handleCompare} disabled={busy} className="shrink-0">
-          {busy ? "Comparing..." : "Compare Documents"}
+          {busy ? t("compare.running") : t("compare.run")}
         </Button>
       </div>
 
-      {busy && <LoadingState label="Comparing the two documents..." />}
+      {busy && <LoadingState label={t("compare.running")} />}
       {error && <p className="text-sm text-danger">{error}</p>}
 
       {result && (
@@ -96,9 +98,9 @@ export function ComparePanel({ files, locked }: ComparePanelProps) {
           </div>
           <div>
             <DownloadButton
-              label="Download Comparison (.md)"
+              label={t("compare.download")}
               filename={`comparison_${sourceA.replace(/\.[^/.]+$/, "")}_vs_${sourceB.replace(/\.[^/.]+$/, "")}.md`}
-              content={buildExportMarkdown("Document Comparison", { "Document A": sourceA, "Document B": sourceB }, result)}
+              content={buildExportMarkdown(t("compare.title"), { [t("compare.docA")]: sourceA, [t("compare.docB")]: sourceB }, result)}
             />
           </div>
         </>

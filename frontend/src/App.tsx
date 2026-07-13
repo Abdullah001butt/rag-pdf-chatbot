@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { AuthProvider, useAuth } from "@/context/AuthContext"
+import { LanguageProvider } from "@/context/LanguageContext"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import LandingPage from "@/pages/LandingPage"
 import AuthPage from "@/pages/AuthPage"
@@ -52,9 +53,11 @@ function App() {
   return (
     <ErrorBoundary fallbackTitle="Documind AI ran into a problem.">
       <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </LanguageProvider>
       </BrowserRouter>
     </ErrorBoundary>
   )

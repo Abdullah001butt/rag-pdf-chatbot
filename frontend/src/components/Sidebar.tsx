@@ -2,6 +2,7 @@ import * as React from "react"
 import { useNavigate } from "react-router-dom"
 import { api, getStoredApiKey, setStoredApiKey, type BillingStatus } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
+import { useLanguage } from "@/context/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -15,6 +16,7 @@ interface SidebarProps {
 
 export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
   const { user, logout } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [uploading, setUploading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -75,42 +77,44 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
   return (
     <aside className="flex h-full w-full flex-col gap-6 border-r border-white/10 bg-black p-5 md:w-72">
       <div>
-        <div className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">Account</div>
+        <div className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">{t("sidebar.account")}</div>
         <div className="rounded-2xl border border-white/10 bg-white/3 p-4">
           <div className="mb-2 font-bold text-text">{user?.username}</div>
-          <Badge variant={billing?.tier === "pro" ? "pro" : "default"}>{billing?.label ?? "Free"} Plan</Badge>
+          <Badge variant={billing?.tier === "pro" ? "pro" : "default"}>
+            {billing?.label ?? "Free"} {t("sidebar.plan")}
+          </Badge>
           {billing?.tier === "free" && (
             <p className="mt-2 text-xs text-text-muted">
-              Usage today: {billing?.used_today} / {billing?.daily_actions} actions
+              {t("sidebar.usageToday")}: {billing?.used_today} / {billing?.daily_actions} {t("sidebar.actions")}
             </p>
           )}
         </div>
         {billing?.tier === "free" ? (
           <Button className="mt-2 w-full" onClick={handleUpgrade} disabled={checkingOut}>
-            {checkingOut ? "Redirecting to Stripe..." : "⭐ Upgrade to Pro"}
+            {checkingOut ? t("sidebar.redirecting") : t("sidebar.upgradeToPro")}
           </Button>
         ) : (
           <>
-            <p className="mt-2 text-xs text-text-muted">Unlimited daily actions ✓</p>
+            <p className="mt-2 text-xs text-text-muted">{t("sidebar.unlimitedActions")}</p>
             <Button variant="outline" className="mt-2 w-full" onClick={handleManageBilling} disabled={managingBilling}>
-              {managingBilling ? "Opening..." : "Manage Billing"}
+              {managingBilling ? t("sidebar.opening") : t("sidebar.manageBilling")}
             </Button>
           </>
         )}
         <Button variant="outline" className="mt-2 w-full" onClick={() => navigate("/account")}>
-          Account Settings
+          {t("sidebar.accountSettings")}
         </Button>
         <Button variant="outline" className="mt-2 w-full" onClick={logout}>
-          Log Out
+          {t("sidebar.logOut")}
         </Button>
       </div>
 
       <div>
-        <div className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">Google API Key</div>
+        <div className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">{t("sidebar.googleApiKey")}</div>
         <div className="flex gap-1">
           <Input
             type={showApiKey ? "text" : "password"}
-            placeholder="Enter your Google API Key"
+            placeholder={t("sidebar.apiKeyPlaceholder")}
             value={apiKey}
             onChange={(e) => handleApiKeyChange(e.target.value)}
           />
@@ -124,17 +128,17 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
           </button>
         </div>
         <p className="mt-1.5 text-xs text-text-muted">
-          Click{" "}
+          {t("sidebar.apiKeyHelp1")}{" "}
           <a href="https://ai.google.dev/" target="_blank" rel="noreferrer" className="text-accent underline">
-            here
+            {t("sidebar.apiKeyHelp2")}
           </a>{" "}
-          to get an API key. Stored only in your browser.
+          {t("sidebar.apiKeyHelp3")}
         </p>
-        {!apiKey && <p className="mt-1 text-xs text-warning">⚠ Required for chat and all AI features.</p>}
+        {!apiKey && <p className="mt-1 text-xs text-warning">{t("sidebar.apiKeyRequired")}</p>}
       </div>
 
       <div>
-        <div className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">Documents</div>
+        <div className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">{t("sidebar.documents")}</div>
         <input ref={fileInputRef} type="file" accept=".pdf" multiple onChange={handleUpload} className="hidden" id="pdf-upload" />
         <Button
           className="w-full cursor-pointer"
@@ -142,7 +146,7 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
           onClick={() => fileInputRef.current?.click()}
           type="button"
         >
-          {uploading ? "Uploading..." : "Upload PDFs"}
+          {uploading ? t("sidebar.uploading") : t("sidebar.uploadPdfs")}
         </Button>
         {error && <p className="mt-2 text-xs text-danger">{error}</p>}
         <ul className="mt-3 flex flex-col gap-1.5">
@@ -155,7 +159,7 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
               📄 {f}
             </li>
           ))}
-          {files.length === 0 && <li className="text-xs text-text-muted">No documents uploaded yet.</li>}
+          {files.length === 0 && <li className="text-xs text-text-muted">{t("sidebar.noDocuments")}</li>}
         </ul>
       </div>
     </aside>

@@ -1,26 +1,15 @@
 import { motion } from "framer-motion"
 import * as React from "react"
 import { Typewriter } from "@/components/landing/Typewriter"
+import { useLanguage } from "@/context/LanguageContext"
 
-const TYPED_WORDS = ["answered.", "explained.", "clarified."]
+const TYPED_KEYS = ["faq.typed.answered", "faq.typed.explained", "faq.typed.clarified"]
 
-const FAQS = [
-  {
-    q: "What kinds of documents can I upload?",
-    a: "Any PDF — contracts, leases, reports, policy docs, even scanned/image-based PDFs. Pages without extractable text are read automatically via OCR.",
-  },
-  {
-    q: "Are the answers actually grounded in my document?",
-    a: "Yes. Every answer shows the exact source document and page number it came from, and the assistant will tell you explicitly when something isn't in your uploaded documents.",
-  },
-  {
-    q: "Do I need my own Gemini API key?",
-    a: "Yes, currently you bring your own free Google API key — it's entered once in the sidebar and stored only in your browser.",
-  },
-  {
-    q: "Can I cancel my Pro subscription anytime?",
-    a: "Yes, manage or cancel anytime from the Billing Portal in your account sidebar — no questions asked.",
-  },
+const FAQ_KEYS = [
+  { qKey: "faq.q1.q", aKey: "faq.q1.a" },
+  { qKey: "faq.q2.q", aKey: "faq.q2.a" },
+  { qKey: "faq.q3.q", aKey: "faq.q3.a" },
+  { qKey: "faq.q4.q", aKey: "faq.q4.a" },
 ]
 
 function FaqItem({ q, a }: { q: string; a: string }) {
@@ -46,14 +35,17 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 }
 
 export function Faq() {
+  const { t } = useLanguage()
+  const typedWords = TYPED_KEYS.map((k) => t(k))
+
   return (
     <section id="faq" className="px-6 py-28">
       <div className="mx-auto max-w-2xl text-center">
-        <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">FAQ</p>
+        <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">{t("faq.eyebrow")}</p>
         <h2 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-          Questions,{" "}
+          {t("faq.headlinePrefix")}{" "}
           <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
-            <Typewriter words={TYPED_WORDS} cursorClassName="bg-emerald-400" />
+            <Typewriter words={typedWords} cursorClassName="bg-emerald-400" />
           </span>
         </h2>
       </div>
@@ -64,8 +56,8 @@ export function Faq() {
         transition={{ duration: 0.5 }}
         className="mx-auto mt-14 max-w-2xl"
       >
-        {FAQS.map((item) => (
-          <FaqItem key={item.q} {...item} />
+        {FAQ_KEYS.map((item) => (
+          <FaqItem key={item.qKey} q={t(item.qKey)} a={t(item.aKey)} />
         ))}
       </motion.div>
     </section>

@@ -1,23 +1,34 @@
 import { motion } from "framer-motion"
 import { Typewriter } from "@/components/landing/Typewriter"
+import { useLanguage } from "@/context/LanguageContext"
 
-const TABS = ["Chat", "Summaries", "Study Notes", "Quiz", "Flashcards", "Compare", "Research", "Editor"]
-const TYPED_WORDS = ["trust.", "verify.", "cite.", "act on."]
+const TAB_KEYS = [
+  "dash.tab.chat",
+  "dash.tab.summary",
+  "dash.tab.notes",
+  "dash.tab.quiz",
+  "dash.tab.flashcards",
+  "dash.tab.compare",
+  "dash.tab.research",
+  "dash.tab.editor",
+]
+const TYPED_KEYS = ["preview.typed.trust", "preview.typed.verify", "preview.typed.cite", "preview.typed.actOn"]
 
 export function ProductPreview() {
+  const { t } = useLanguage()
+  const typedWords = TYPED_KEYS.map((k) => t(k))
+
   return (
     <section className="px-6 py-28">
       <div className="mx-auto max-w-5xl text-center">
-        <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">See it in action</p>
+        <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">{t("preview.eyebrow")}</p>
         <h2 className="mx-auto max-w-2xl text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-          Answers you can{" "}
+          {t("preview.headlinePrefix")}{" "}
           <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
-            <Typewriter words={TYPED_WORDS} cursorClassName="bg-emerald-400" />
+            <Typewriter words={typedWords} cursorClassName="bg-emerald-400" />
           </span>
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-white/50">
-          Every response is grounded in your actual documents, with citations linking back to the exact page.
-        </p>
+        <p className="mx-auto mt-4 max-w-xl text-white/50">{t("preview.subtitle")}</p>
       </div>
 
       <motion.div
@@ -44,20 +55,20 @@ export function ProductPreview() {
             {/* Sidebar */}
             <div className="hidden w-56 shrink-0 flex-col gap-4 border-r border-border bg-black/40 p-4 md:flex">
               <div>
-                <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted">Account</div>
+                <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted">{t("sidebar.account")}</div>
                 <div className="rounded-xl border border-border bg-white/[0.03] p-3">
                   <div className="mb-1.5 text-sm font-bold text-text">Butt2009</div>
                   <span className="inline-block rounded-full border border-transparent bg-gradient-to-r from-amber-400 to-amber-500 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black">
-                    Pro Plan
+                    {t("pricing.pro.label")} {t("sidebar.plan")}
                   </span>
                 </div>
                 <div className="mt-2 w-full rounded-lg bg-accent px-3 py-1.5 text-center text-xs font-semibold text-black">
-                  Manage Billing
+                  {t("sidebar.manageBilling")}
                 </div>
               </div>
               <div>
-                <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted">Documents</div>
-                <div className="w-full rounded-lg border border-border py-1.5 text-center text-xs text-text-muted">Upload PDFs</div>
+                <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted">{t("sidebar.documents")}</div>
+                <div className="w-full rounded-lg border border-border py-1.5 text-center text-xs text-text-muted">{t("sidebar.uploadPdfs")}</div>
                 <div className="mt-2 truncate rounded-lg border border-border bg-white/[0.03] px-2.5 py-1.5 text-[11px] text-text-muted">
                   📄 Final_Year_Project_Proposal.pdf
                 </div>
@@ -68,43 +79,40 @@ export function ProductPreview() {
             <div className="flex-1 p-5">
               <div className="mb-4 flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent/15 text-sm">📄</div>
-                <p className="text-xs text-text-muted">Ask questions across multiple documents, powered by Gemini &amp; retrieval-augmented search</p>
+                <p className="text-xs text-text-muted">{t("dash.tagline")}</p>
               </div>
 
               <div className="mb-4 flex flex-wrap gap-1.5 border-b border-border pb-3 text-xs">
-                {TABS.map((t, i) => (
+                {TAB_KEYS.map((k, i) => (
                   <span
-                    key={t}
+                    key={k}
                     className={
                       i === 0
                         ? "rounded-md bg-accent/15 px-2.5 py-1 font-semibold text-accent"
                         : "rounded-md px-2.5 py-1 text-text-muted"
                     }
                   >
-                    {t}
+                    {t(k)}
                   </span>
                 ))}
               </div>
 
               <div className="mb-4 flex gap-2">
                 <div className="flex-1 rounded-lg border border-border bg-white/[0.02] px-3 py-2 text-xs text-text-muted">
-                  Ask a question from your PDF files...
+                  {t("preview.sampleQuestion")}
                 </div>
-                <div className="rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-black">Ask</div>
+                <div className="rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-black">→</div>
               </div>
 
               <div className="flex flex-col gap-3">
                 <div className="flex items-start gap-2 rounded-xl border border-border bg-white/[0.02] px-4 py-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-black">U</span>
-                  <p className="text-xs text-text">What are the key deliverables and their deadlines?</p>
+                  <p className="text-xs text-text">{t("preview.sampleQuestion")}</p>
                 </div>
                 <div className="flex items-start gap-2 rounded-xl border border-border bg-white/[0.02] px-4 py-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px] font-bold text-text">AI</span>
                   <div className="flex flex-col gap-2">
-                    <p className="text-xs leading-relaxed text-text">
-                      The proposal outlines three deliverables: a working prototype by Week 8, the final report by
-                      Week 14, and the live demo presentation in Week 15.
-                    </p>
+                    <p className="text-xs leading-relaxed text-text">{t("preview.sampleAnswer")}</p>
                     <div className="flex flex-wrap gap-1.5">
                       <span className="rounded-full border border-border bg-white/5 px-2 py-0.5 text-[10px] text-text-muted">
                         Final_Year_Project_Proposal.pdf · p.3

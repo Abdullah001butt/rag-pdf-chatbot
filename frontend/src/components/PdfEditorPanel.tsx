@@ -3,6 +3,7 @@ import * as pdfjsLib from "pdfjs-dist"
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url"
 import { PDFDocument, StandardFonts, rgb, type RGB } from "pdf-lib"
 import { api } from "@/lib/api"
+import { useLanguage } from "@/context/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 
@@ -94,6 +95,7 @@ function hexToRgb(hex: string): RGB {
 }
 
 export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
+  const { t } = useLanguage()
   const [source, setSource] = React.useState(files[0] || "")
   const [pdfBytes, setPdfBytes] = React.useState<ArrayBuffer | null>(null)
   const [pdfDoc, setPdfDoc] = React.useState<pdfjsLib.PDFDocumentProxy | null>(null)
@@ -578,15 +580,14 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
     addedSignatures.length
 
   if (files.length === 0) {
-    return <p className="text-sm text-text-muted">Upload at least one PDF in the sidebar first.</p>
+    return <p className="text-sm text-text-muted">{t("common.uploadFirst")}</p>
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold text-text">PDF Editor</h2>
+      <h2 className="text-lg font-semibold text-text">{t("editorPanel.title")}</h2>
       <p className="text-xs text-text-muted">
-        Click text to edit or delete it, add new text, manage pages, and style what you add — then export a flattened
-        copy. Best for simple fixes (typos, dates, names, redactions); it does not reflow surrounding text.
+        {t("editorPanel.description")}
       </p>
 
       <div className="flex flex-wrap items-center gap-2">

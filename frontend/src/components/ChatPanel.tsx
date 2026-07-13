@@ -1,5 +1,6 @@
 import * as React from "react"
 import { api } from "@/lib/api"
+import { useLanguage } from "@/context/LanguageContext"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
@@ -11,6 +12,7 @@ interface Turn {
 }
 
 export function ChatPanel() {
+  const { t } = useLanguage()
   const [question, setQuestion] = React.useState("")
   const [turns, setTurns] = React.useState<Turn[]>([])
   const [busy, setBusy] = React.useState(false)
@@ -50,13 +52,13 @@ export function ChatPanel() {
     <div className="flex h-full flex-col gap-4">
       <form onSubmit={handleAsk} className="flex gap-2">
         <Input
-          placeholder="Ask a question from your PDF files..."
+          placeholder={t("chat.placeholder")}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           disabled={busy}
         />
         <Button type="submit" disabled={busy}>
-          {busy ? "Thinking..." : "Ask"}
+          {busy ? t("chat.thinking") : t("chat.ask")}
         </Button>
       </form>
 
@@ -80,7 +82,7 @@ export function ChatPanel() {
               <div className="text-sm text-text">
                 {turn.notFound && (
                   <div className="mb-2 inline-block rounded-md border border-warning/35 bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning">
-                    ⚠ Not in document
+                    {t("chat.notInDoc")}
                   </div>
                 )}
                 <div className="whitespace-pre-wrap">{turn.answer}</div>
@@ -97,7 +99,7 @@ export function ChatPanel() {
             </div>
           </div>
         ))}
-        {turns.length === 0 && <p className="text-sm text-text-muted">Ask your first question to get started.</p>}
+        {turns.length === 0 && <p className="text-sm text-text-muted">{t("chat.emptyState")}</p>}
       </div>
     </div>
   )

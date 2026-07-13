@@ -1,11 +1,21 @@
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { Typewriter } from "@/components/landing/Typewriter"
+import { useLanguage } from "@/context/LanguageContext"
 
-const TYPED_WORDS = ["summarized?", "signed?", "quizzed?", "redacted?", "filled out?", "compared?"]
+const TYPED_KEYS = [
+  "cta.typed.summarized",
+  "cta.typed.signed",
+  "cta.typed.quizzed",
+  "cta.typed.redacted",
+  "cta.typed.filledOut",
+  "cta.typed.compared",
+]
 
 export function FinalCta() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
+  const typedWords = TYPED_KEYS.map((k) => t(k))
 
   return (
     <section className="relative overflow-hidden px-6 py-28 text-center">
@@ -32,9 +42,9 @@ export function FinalCta() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl"
         >
-          Ready to get your PDF{" "}
+          {t("cta.headlinePrefix")}{" "}
           <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
-            <Typewriter words={TYPED_WORDS} cursorClassName="bg-emerald-400" />
+            <Typewriter words={typedWords} cursorClassName="bg-emerald-400" />
           </span>
         </motion.h2>
         <motion.p
@@ -44,7 +54,7 @@ export function FinalCta() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mx-auto mt-4 max-w-md text-white/50"
         >
-          No credit card required. Upload a PDF and get grounded answers in minutes.
+          {t("cta.subtitle")}
         </motion.p>
 
         <motion.div
@@ -60,7 +70,7 @@ export function FinalCta() {
             onClick={() => navigate("/login")}
             className="group flex items-center gap-2 rounded-full bg-emerald-400 px-8 py-3.5 text-sm font-bold text-black shadow-lg shadow-emerald-500/20"
           >
-            Get Started Free
+            {t("cta.primary")}
             <span aria-hidden className="transition-transform group-hover:translate-x-1">→</span>
           </motion.button>
           <motion.button
@@ -69,7 +79,7 @@ export function FinalCta() {
             onClick={() => navigate("/login")}
             className="rounded-full border border-white/15 px-8 py-3.5 text-sm font-semibold text-white/80 transition-colors hover:border-white/30 hover:text-white"
           >
-            Try sample document
+            {t("cta.secondary")}
           </motion.button>
         </motion.div>
       </motion.div>

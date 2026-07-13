@@ -1,59 +1,44 @@
 import { motion } from "framer-motion"
 import { Typewriter } from "@/components/landing/Typewriter"
+import { useLanguage } from "@/context/LanguageContext"
 
-const TYPED_WORDS = ["you.", "students.", "legal teams.", "researchers.", "freelancers.", "HR teams."]
+const TYPED_KEYS = [
+  "usecases.typed.you",
+  "usecases.typed.students",
+  "usecases.typed.legal",
+  "usecases.typed.researchers",
+  "usecases.typed.freelancers",
+  "usecases.typed.hr",
+]
 
 const CASES = [
-  {
-    icon: "🎓",
-    title: "Students",
-    body: "Turn dense textbooks and lecture PDFs into summaries, study notes, quizzes, and flashcards before an exam.",
-  },
-  {
-    icon: "⚖️",
-    title: "Legal & Contracts",
-    body: "Pull out obligations, deadlines, and risky clauses from contracts and leases — every claim cited to a page.",
-  },
-  {
-    icon: "🏠",
-    title: "Real Estate",
-    body: "Compare listing agreements and disclosures side by side, fill in forms, and get paperwork e-signed.",
-  },
-  {
-    icon: "🔬",
-    title: "Researchers",
-    body: "Ask a research question across dozens of papers and get a synthesized report with sub-question citations.",
-  },
-  {
-    icon: "🧑‍💼",
-    title: "HR & Ops",
-    body: "Fill offer letters and policy forms, and redact PII before sharing employee documents externally.",
-  },
-  {
-    icon: "🧾",
-    title: "Freelancers & Small Business",
-    body: "Redact client details before sharing files, batch-summarize project docs, and get invoices signed fast.",
-  },
+  { icon: "🎓", titleKey: "usecases.students.title", bodyKey: "usecases.students.body" },
+  { icon: "⚖️", titleKey: "usecases.legal.title", bodyKey: "usecases.legal.body" },
+  { icon: "🏠", titleKey: "usecases.realestate.title", bodyKey: "usecases.realestate.body" },
+  { icon: "🔬", titleKey: "usecases.researchers.title", bodyKey: "usecases.researchers.body" },
+  { icon: "🧑‍💼", titleKey: "usecases.hr.title", bodyKey: "usecases.hr.body" },
+  { icon: "🧾", titleKey: "usecases.freelancers.title", bodyKey: "usecases.freelancers.body" },
 ]
 
 export function UseCases() {
+  const { t } = useLanguage()
+  const typedWords = TYPED_KEYS.map((k) => t(k))
+
   return (
     <section className="px-6 py-28 text-center">
-      <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">Who it's for</p>
+      <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-emerald-400">{t("usecases.eyebrow")}</p>
       <h2 className="mx-auto max-w-2xl text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-        Built for{" "}
+        {t("usecases.headlinePrefix")}{" "}
         <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
-          <Typewriter words={TYPED_WORDS} cursorClassName="bg-emerald-400" />
+          <Typewriter words={typedWords} cursorClassName="bg-emerald-400" />
         </span>
       </h2>
-      <p className="mx-auto mt-4 max-w-xl text-white/50">
-        Same document toolkit, wherever paperwork slows you down.
-      </p>
+      <p className="mx-auto mt-4 max-w-xl text-white/50">{t("usecases.subtitle")}</p>
 
       <div className="mx-auto mt-16 grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {CASES.map((c, i) => (
           <motion.div
-            key={c.title}
+            key={c.titleKey}
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
@@ -63,8 +48,8 @@ export function UseCases() {
             <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-lg">
               {c.icon}
             </div>
-            <h3 className="mb-2 text-base font-bold text-white">{c.title}</h3>
-            <p className="text-sm leading-relaxed text-white/50">{c.body}</p>
+            <h3 className="mb-2 text-base font-bold text-white">{t(c.titleKey)}</h3>
+            <p className="text-sm leading-relaxed text-white/50">{t(c.bodyKey)}</p>
           </motion.div>
         ))}
       </div>

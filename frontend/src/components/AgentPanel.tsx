@@ -1,5 +1,6 @@
 import * as React from "react"
 import { api, type QuizQuestion, type Flashcard } from "@/lib/api"
+import { useLanguage } from "@/context/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 import { downloadFile } from "@/lib/export"
@@ -26,6 +27,7 @@ interface StepResult extends PlanStep {
 }
 
 export function AgentPanel({ files }: AgentPanelProps) {
+  const { t } = useLanguage()
   const [goal, setGoal] = React.useState("")
   const [planning, setPlanning] = React.useState(false)
   const [running, setRunning] = React.useState(false)
@@ -120,30 +122,27 @@ export function AgentPanel({ files }: AgentPanelProps) {
   }
 
   if (files.length === 0) {
-    return <p className="text-sm text-text-muted">Upload at least one PDF in the sidebar first.</p>
+    return <p className="text-sm text-text-muted">{t("common.uploadFirst")}</p>
   }
 
   const doneCount = steps.filter((s) => s.status === "done").length
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold text-text">AI Agent</h2>
-      <p className="text-xs text-text-muted">
-        Describe what you want done, and the agent plans and runs the right steps automatically — e.g. "Summarize
-        this and quiz me on the key points" or "Give me study notes and 15 flashcards."
-      </p>
+      <h2 className="text-lg font-semibold text-text">{t("agentPanel.title")}</h2>
+      <p className="text-xs text-text-muted">{t("agentPanel.description")}</p>
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <textarea
           value={goal}
           onChange={(e) => setGoal(e.target.value)}
-          placeholder="What do you want the agent to do?"
+          placeholder={t("agentPanel.placeholder")}
           rows={2}
           disabled={planning || running}
           className="flex-1 resize-none rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text disabled:opacity-50"
         />
         <Button onClick={handlePlanAndRun} disabled={planning || running || !goal.trim()} className="shrink-0">
-          {planning ? "Planning..." : running ? "Running..." : "🤖 Plan & Run"}
+          {planning ? t("agentPanel.planning") : running ? t("agentPanel.running") : `🤖 ${t("agentPanel.run")}`}
         </Button>
       </div>
 
@@ -158,7 +157,7 @@ export function AgentPanel({ files }: AgentPanelProps) {
                   {i + 1}. {s.label}
                 </span>
                 {s.status === "pending" && <span className="text-xs text-text-muted">Queued</span>}
-                {s.status === "running" && <span className="text-xs text-text-muted">Running...</span>}
+                {s.status === "running" && <span className="text-xs text-text-muted">{t("agentPanel.running")}</span>}
                 {s.status === "error" && <span className="text-xs text-danger">{s.error}</span>}
                 {s.status === "done" && <span className="text-xs text-success">✓ Done</span>}
               </div>
@@ -184,7 +183,7 @@ export function AgentPanel({ files }: AgentPanelProps) {
       {doneCount > 0 && !running && (
         <div>
           <Button variant="outline" onClick={handleDownloadAll}>
-            ⬇ Download Agent Report ({doneCount} step{doneCount === 1 ? "" : "s"})
+            ⬇ {t("agentPanel.downloadReport")} ({doneCount})
           </Button>
         </div>
       )}

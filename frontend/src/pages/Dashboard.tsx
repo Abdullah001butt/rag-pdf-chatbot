@@ -2,7 +2,9 @@ import * as React from "react"
 import { useNavigate } from "react-router-dom"
 import { api, type BillingStatus } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
+import { useLanguage } from "@/context/LanguageContext"
 import { Sidebar } from "@/components/Sidebar"
+import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { ChatPanel } from "@/components/ChatPanel"
 import { GeneratePanel } from "@/components/GeneratePanel"
 import { QuizPanel } from "@/components/QuizPanel"
@@ -17,17 +19,17 @@ import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { LoadingState } from "@/components/Spinner"
 
 const TABS = [
-  { key: "chat", label: "💬 Chat" },
-  { key: "summary", label: "📝 Summaries" },
-  { key: "notes", label: "📖 Study Notes" },
-  { key: "quiz", label: "❓ Quiz" },
-  { key: "flashcards", label: "🗂 Flashcards" },
-  { key: "compare", label: "🔀 Compare" },
-  { key: "research", label: "🔎 Research" },
-  { key: "editor", label: "✏️ Editor" },
-  { key: "formfiller", label: "📝 Form Filler" },
-  { key: "batch", label: "⚡ Batch" },
-  { key: "agent", label: "🤖 Agent" },
+  { key: "chat", icon: "💬", labelKey: "dash.tab.chat" },
+  { key: "summary", icon: "📝", labelKey: "dash.tab.summary" },
+  { key: "notes", icon: "📖", labelKey: "dash.tab.notes" },
+  { key: "quiz", icon: "❓", labelKey: "dash.tab.quiz" },
+  { key: "flashcards", icon: "🗂", labelKey: "dash.tab.flashcards" },
+  { key: "compare", icon: "🔀", labelKey: "dash.tab.compare" },
+  { key: "research", icon: "🔎", labelKey: "dash.tab.research" },
+  { key: "editor", icon: "✏️", labelKey: "dash.tab.editor" },
+  { key: "formfiller", icon: "📝", labelKey: "dash.tab.formfiller" },
+  { key: "batch", icon: "⚡", labelKey: "dash.tab.batch" },
+  { key: "agent", icon: "🤖", labelKey: "dash.tab.agent" },
 ] as const
 
 type TabKey = (typeof TABS)[number]["key"]
@@ -40,6 +42,7 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
   const [checkoutNotice, setCheckoutNotice] = React.useState<string | null>(null)
   const { user, refreshTier } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
 
   React.useEffect(() => {
@@ -53,12 +56,12 @@ export default function Dashboard() {
           const { data } = await api.get("/billing/verify", { params: { session_id: sessionId } })
           setBilling(data)
           refreshTier(data.tier)
-          setCheckoutNotice(data.tier === "pro" ? "🎉 You're now on the Pro plan!" : "Payment received — finishing setup...")
+          setCheckoutNotice(data.tier === "pro" ? t("dash.checkoutSuccess") : t("dash.checkoutProcessing"))
         } catch {
-          setCheckoutNotice("We couldn't confirm your payment yet. It may still be processing.")
+          setCheckoutNotice(t("dash.checkoutUnconfirmed"))
         }
       } else if (checkout === "cancelled") {
-        setCheckoutNotice("Checkout was cancelled — you're still on the Free plan.")
+        setCheckoutNotice(t("dash.checkoutCancelled"))
       }
 
       if (checkout) {
@@ -85,12 +88,15 @@ export default function Dashboard() {
           <img src="/logo.png" alt="Documind AI" className="h-7 w-auto" onError={(e) => (e.currentTarget.style.display = "none")} />
           <span className="font-semibold text-text">Documind AI</span>
         </div>
-        <button
-          className="rounded-lg border border-border px-3 py-1.5 text-sm text-text"
-          onClick={() => setSidebarOpen((o) => !o)}
-        >
-          {sidebarOpen ? "Close" : "Menu"}
-        </button>
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+          <button
+            className="rounded-lg border border-border px-3 py-1.5 text-sm text-text"
+            onClick={() => setSidebarOpen((o) => !o)}
+          >
+            {sidebarOpen ? t("dash.close") : t("dash.menu")}
+          </button>
+        </div>
       </div>
 
       <div className={`${sidebarOpen ? "block" : "hidden"} md:block`}>
@@ -100,9 +106,9 @@ export default function Dashboard() {
       <main className="flex flex-1 flex-col overflow-hidden">
         {user && !user.email_verified && (
           <div className="flex items-center justify-between gap-3 border-b border-warning/30 bg-warning/10 px-5 py-2 text-sm text-text">
-            <span>⚠ Please verify your email address.</span>
+            <span>{t("dash.verifyEmail")}</span>
             <button className="font-semibold text-warning hover:underline" onClick={() => navigate("/account")}>
-              Verify now →
+              {t("dash.verifyNow")}
             </button>
           </div>
         )}
@@ -116,55 +122,56 @@ export default function Dashboard() {
         )}
         <header className="hidden items-center gap-3 border-b border-border p-5 md:flex">
           <img src="/logo.png" alt="Documind AI" className="h-8 w-auto" onError={(e) => (e.currentTarget.style.display = "none")} />
-          <div>
+          <div className="flex-1">
             <p className="font-extrabold leading-tight text-text">
               Documind <span className="text-accent">AI</span>
             </p>
-            <p className="text-xs text-text-muted">Ask questions across multiple documents, powered by Gemini &amp; retrieval-augmented search</p>
+            <p className="text-xs text-text-muted">{t("dash.tagline")}</p>
           </div>
+          <LanguageSwitcher />
         </header>
 
         <nav className="flex gap-1.5 overflow-x-auto border-b border-border px-4 py-3 md:px-6">
-          {TABS.map((t) => (
+          {TABS.map((tabItem) => (
             <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
+              key={tabItem.key}
+              onClick={() => setTab(tabItem.key)}
               className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
-                tab === t.key
+                tab === tabItem.key
                   ? "border border-accent/30 bg-accent/10 text-accent"
                   : "border border-transparent text-text-muted hover:text-text"
               }`}
             >
-              {t.label}
+              {tabItem.icon} {t(tabItem.labelKey)}
             </button>
           ))}
         </nav>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-6">
           {loading ? (
-            <LoadingState label="Loading your workspace..." />
+            <LoadingState label={t("dash.loadingWorkspace")} />
           ) : (
-            <ErrorBoundary key={tab} fallbackTitle="This panel hit an error.">
+            <ErrorBoundary key={tab} fallbackTitle={t("dash.panelError")}>
               {tab === "chat" && <ChatPanel />}
               {tab === "summary" && (
                 <GeneratePanel
-                  title="Smart Summaries"
+                  title={t("dash.summaryTitle")}
                   endpoint="/generate/summary"
                   files={files}
-                  buttonLabel="Generate Summary"
-                  loadingLabel="Summarizing your document..."
-                  exportTitle="Summary"
+                  buttonLabel={t("dash.summaryButton")}
+                  loadingLabel={t("dash.summaryLoading")}
+                  exportTitle={t("dash.tab.summary")}
                   exportFilenameSuffix="summary"
                 />
               )}
               {tab === "notes" && (
                 <GeneratePanel
-                  title="AI Study Notes"
+                  title={t("dash.notesTitle")}
                   endpoint="/generate/notes"
                   files={files}
-                  buttonLabel="Generate Study Notes"
-                  loadingLabel="Building study notes..."
-                  exportTitle="Study Notes"
+                  buttonLabel={t("dash.notesButton")}
+                  loadingLabel={t("dash.notesLoading")}
+                  exportTitle={t("dash.tab.notes")}
                   exportFilenameSuffix="study_notes"
                 />
               )}

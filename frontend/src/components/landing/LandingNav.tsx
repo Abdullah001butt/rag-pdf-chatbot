@@ -1,8 +1,11 @@
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
+import { useLanguage } from "@/context/LanguageContext"
+import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 
 export function LandingNav() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
 
   function scrollTo(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
@@ -25,31 +28,34 @@ export function LandingNav() {
 
         <div className="hidden items-center gap-8 text-sm font-medium text-white/60 md:flex">
           <button onClick={() => scrollTo("how-it-works")} className="relative transition-colors hover:text-white group">
-            How it works
+            {t("nav.howItWorks")}
             <span className="absolute -bottom-1 left-0 h-px w-0 bg-emerald-400 transition-all group-hover:w-full" />
           </button>
           <button onClick={() => scrollTo("editor")} className="relative transition-colors hover:text-white group">
-            Editor
+            {t("nav.editor")}
             <span className="absolute -bottom-1 left-0 h-px w-0 bg-emerald-400 transition-all group-hover:w-full" />
           </button>
           <button onClick={() => scrollTo("pricing")} className="relative transition-colors hover:text-white group">
-            Pricing
+            {t("nav.pricing")}
             <span className="absolute -bottom-1 left-0 h-px w-0 bg-emerald-400 transition-all group-hover:w-full" />
           </button>
           <button onClick={() => scrollTo("faq")} className="relative transition-colors hover:text-white group">
-            FAQ
+            {t("nav.faq")}
             <span className="absolute -bottom-1 left-0 h-px w-0 bg-emerald-400 transition-all group-hover:w-full" />
           </button>
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => navigate("/login")}
-          className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black"
-        >
-          Sign In
-        </motion.button>
+        <div className="flex items-center gap-3">
+          <LanguageSwitcher />
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => navigate("/login")}
+            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black"
+          >
+            {t("nav.signIn")}
+          </motion.button>
+        </div>
       </div>
     </motion.nav>
   )
