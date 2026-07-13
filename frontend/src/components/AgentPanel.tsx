@@ -44,12 +44,12 @@ export function AgentPanel({ files }: AgentPanelProps) {
       const { data } = await api.post("/generate/agent-plan", { goal })
       plan = data.steps || []
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Couldn't plan the task.")
+      setError(err?.response?.data?.detail || t("agentPanel.errPlanFailed"))
       setPlanning(false)
       return
     }
     if (plan.length === 0) {
-      setError('Couldn\'t figure out a plan for that goal. Try being more specific, e.g. "Summarize this and quiz me on the key points."')
+      setError(t("agentPanel.errNoPlan"))
       setPlanning(false)
       return
     }
@@ -85,7 +85,7 @@ export function AgentPanel({ files }: AgentPanelProps) {
           setSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, status: "done", textResult: data.report } : s)))
         }
       } catch (err: any) {
-        const message = err?.response?.data?.detail || "This step failed."
+        const message = err?.response?.data?.detail || t("agentPanel.errStepFailed")
         setSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, status: "error", error: message } : s)))
       }
     }
@@ -156,10 +156,10 @@ export function AgentPanel({ files }: AgentPanelProps) {
                 <span className="text-sm font-medium text-text">
                   {i + 1}. {s.label}
                 </span>
-                {s.status === "pending" && <span className="text-xs text-text-muted">Queued</span>}
+                {s.status === "pending" && <span className="text-xs text-text-muted">{t("agentPanel.queued")}</span>}
                 {s.status === "running" && <span className="text-xs text-text-muted">{t("agentPanel.running")}</span>}
                 {s.status === "error" && <span className="text-xs text-danger">{s.error}</span>}
-                {s.status === "done" && <span className="text-xs text-success">✓ Done</span>}
+                {s.status === "done" && <span className="text-xs text-success">{t("agentPanel.done")}</span>}
               </div>
               {s.status === "running" && <LoadingState label="" />}
               {s.status === "done" && s.textResult && (
@@ -167,12 +167,12 @@ export function AgentPanel({ files }: AgentPanelProps) {
               )}
               {s.status === "done" && s.quizResult && (
                 <p className="text-sm text-text-muted">
-                  {s.quizResult.length} quiz questions generated — download the full report to view them.
+                  {s.quizResult.length} {t("agentPanel.quizGenerated")}
                 </p>
               )}
               {s.status === "done" && s.flashcardResult && (
                 <p className="text-sm text-text-muted">
-                  {s.flashcardResult.length} flashcards generated — download the full report to view them.
+                  {s.flashcardResult.length} {t("agentPanel.flashcardsGenerated")}
                 </p>
               )}
             </div>

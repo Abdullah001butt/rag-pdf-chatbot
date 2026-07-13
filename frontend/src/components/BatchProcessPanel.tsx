@@ -59,7 +59,7 @@ export function BatchProcessPanel({ files }: BatchProcessPanelProps) {
         const { data } = await api.post(actionInfo.endpoint, { source })
         setResults((prev) => prev.map((r) => (r.source === source ? { ...r, status: "done", result: data.result } : r)))
       } catch (err: any) {
-        const message = err?.response?.data?.detail || "Generation failed."
+        const message = err?.response?.data?.detail || t("batchPanel.generationFailed")
         setResults((prev) => prev.map((r) => (r.source === source ? { ...r, status: "error", error: message } : r)))
       }
     }
@@ -96,13 +96,15 @@ export function BatchProcessPanel({ files }: BatchProcessPanelProps) {
 
       <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/3 p-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-text">Select documents ({selected.size} of {files.length})</span>
+          <span className="text-sm font-medium text-text">
+            {t("batchPanel.selectDocuments")} ({selected.size} / {files.length})
+          </span>
           <div className="flex gap-2">
             <button className="text-xs text-primary hover:underline" onClick={() => setSelected(new Set(files))} disabled={running}>
-              Select all
+              {t("batchPanel.selectAll")}
             </button>
             <button className="text-xs text-primary hover:underline" onClick={() => setSelected(new Set())} disabled={running}>
-              Clear
+              {t("batchPanel.clearSelection")}
             </button>
           </div>
         </div>
@@ -134,7 +136,7 @@ export function BatchProcessPanel({ files }: BatchProcessPanelProps) {
               <div className="mb-2 flex items-center justify-between gap-2">
                 <span className="text-sm font-medium text-text">{r.source}</span>
                 {r.status === "running" && <span className="text-xs text-text-muted">{t("common.generating")}</span>}
-                {r.status === "pending" && <span className="text-xs text-text-muted">Queued</span>}
+                {r.status === "pending" && <span className="text-xs text-text-muted">{t("batchPanel.queued")}</span>}
                 {r.status === "error" && <span className="text-xs text-danger">{r.error}</span>}
                 {r.status === "done" && r.result && (
                   <DownloadButton

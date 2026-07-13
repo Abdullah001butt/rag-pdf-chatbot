@@ -67,10 +67,10 @@ const PII_PATTERNS = [
   /\b(?:\d[ -]?){13,16}\b/, // credit-card-like
 ]
 
-const REWRITE_ACTIONS: { label: string; instruction: string }[] = [
-  { label: "✨ Fix Grammar", instruction: "Fix any grammar, spelling, and punctuation mistakes." },
-  { label: "✨ Formal", instruction: "Rewrite this in a more formal, professional tone." },
-  { label: "✨ Casual", instruction: "Rewrite this in a more casual, conversational tone." },
+const REWRITE_ACTION_KEYS = [
+  { labelKey: "editorPanel.rewriteFixGrammar", instructionKey: "editorPanel.rewriteFixGrammarInstruction" },
+  { labelKey: "editorPanel.rewriteFormal", instructionKey: "editorPanel.rewriteFormalInstruction" },
+  { labelKey: "editorPanel.rewriteCasual", instructionKey: "editorPanel.rewriteCasualInstruction" },
 ]
 
 const SIG_CANVAS_WIDTH = 400
@@ -96,6 +96,7 @@ function hexToRgb(hex: string): RGB {
 
 export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
   const { t } = useLanguage()
+  const REWRITE_ACTIONS = REWRITE_ACTION_KEYS.map((a) => ({ label: t(a.labelKey), instruction: t(a.instructionKey) }))
   const [source, setSource] = React.useState(files[0] || "")
   const [pdfBytes, setPdfBytes] = React.useState<ArrayBuffer | null>(null)
   const [pdfDoc, setPdfDoc] = React.useState<pdfjsLib.PDFDocumentProxy | null>(null)
@@ -156,7 +157,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
         Array.from({ length: doc.numPages }, (_, i) => ({ id: `orig-${i}`, type: "page" as const, origIndex: i }))
       )
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Couldn't load the document for editing.")
+      setError(err?.response?.data?.detail || t("editorPanel.errLoadDocument"))
     } finally {
       setLoading(false)
     }
@@ -384,7 +385,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
       setPageTextItems((prev) => ({ ...prev, [origIndex]: items }))
       setOcrProcessedPages((prev) => new Set(prev).add(origIndex))
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "OCR failed for this page.")
+      setError(err?.response?.data?.detail || t("editorPanel.errOcrFailed"))
     } finally {
       setOcrBusy(false)
     }
@@ -403,7 +404,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
         setEdits((prev) => ({ ...prev, [key]: data.result }))
       }
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "AI rewrite failed.")
+      setError(err?.response?.data?.detail || t("editorPanel.errRewriteFailed"))
     } finally {
       setAiBusyKey(null)
     }
@@ -424,7 +425,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
         }
       })
     setEdits((prev) => ({ ...prev, ...newEdits }))
-    setError(count > 0 ? null : "No PII patterns (emails, phone numbers, SSNs, card numbers) found on visited pages.")
+    setError(count > 0 ? null : t("editorPanel.noPiiFound"))
     setRedacting(false)
   }
 
@@ -434,7 +435,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
 
   function deleteCurrentPage() {
     if (pageOrder.length <= 1) {
-      setError("Can't delete the only remaining page.")
+      setError(t("editorPanel.errDeleteOnlyPage"))
       return
     }
     setPageOrder((prev) => prev.filter((_, i) => i !== currentPos))
@@ -560,7 +561,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
       a.remove()
       URL.revokeObjectURL(url)
     } catch (err: any) {
-      setError("Export failed: " + (err?.message || "unknown error"))
+      setError(`${t("editorPanel.errExportFailed")} ` + (err?.message || "unknown error"))
     } finally {
       setExporting(false)
     }
@@ -608,10 +609,10 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
           onClick={() => setAddingText((a) => !a)}
           disabled={loading || !pdfDoc}
         >
-          {addingText ? "Click page to place text..." : "➕ Add Text"}
+          {addingText ? t("editorPanel.clickPlaceText") : `➕ ${t("editorPanel.addText")}`}
         </Button>
-        <Button variant="outline" onClick={handleAutoRedactPII} disabled={loading || !pdfDoc || redacting} title="Scans visited pages for emails, phone numbers, SSNs, and card numbers">
-          {redacting ? "Scanning..." : "🔍 Auto-Redact PII"}
+        <Button variant="outline" onClick={handleAutoRedactPII} disabled={loading || !pdfDoc || redacting} title={t("editorPanel.autoRedactTooltip")}>
+          {redacting ? t("editorPanel.scanning") : `🔍 ${t("editorPanel.redactPii")}`}
         </Button>
         <Button
           variant={placingSignature ? "default" : "outline"}
@@ -626,18 +627,18 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
           }}
           disabled={loading || !pdfDoc}
         >
-          {placingSignature ? "Click page to place signature..." : "✍️ Add Signature"}
+          {placingSignature ? t("editorPanel.clickPlaceSignature") : `✍️ ${t("editorPanel.addSignature")}`}
         </Button>
         <Button onClick={handleExport} disabled={exporting || !pdfDoc || changeCount === 0}>
-          {exporting ? "Exporting..." : `⬇ Download Edited PDF (${changeCount} change${changeCount === 1 ? "" : "s"})`}
+          {exporting ? t("editorPanel.exporting") : `⬇ ${t("editorPanel.download")} (${changeCount})`}
         </Button>
       </div>
 
       {/* Style toolbar — applies to new text added and to the item currently being edited */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-white/3 px-3 py-2 text-xs text-text-muted">
-        <span className="font-semibold text-text">Style for new/edited text:</span>
+        <span className="font-semibold text-text">{t("editorPanel.styleLabel")}</span>
         <label className="flex items-center gap-1">
-          Size
+          {t("editorPanel.size")}
           <input
             type="number"
             min={6}
@@ -661,10 +662,10 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
               if (editingKey) setEditStyles((prev) => ({ ...prev, [editingKey]: { ...activeStyle, bold } }))
             }}
           />
-          Bold
+          {t("editorPanel.bold")}
         </label>
         <label className="flex items-center gap-1">
-          Color
+          {t("editorPanel.color")}
           <input
             type="color"
             value={activeStyle.color}
@@ -679,40 +680,40 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
       </div>
 
       {error && <p className="text-sm text-danger">{error}</p>}
-      {loading && <LoadingState label="Loading document..." />}
+      {loading && <LoadingState label={t("editorPanel.loadingDocument")} />}
 
       {pdfDoc && currentEntry && (
         <>
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Button variant="outline" disabled={currentPos === 0} onClick={() => movePosition(-1)}>
-              ⬅ Prev
+              {t("editorPanel.prev")}
             </Button>
             <span className="text-sm text-text-muted">
-              Page {currentPos + 1} / {pageOrder.length}
-              {currentEntry.type === "blank" && " (blank)"}
+              {t("editorPanel.page")} {currentPos + 1} / {pageOrder.length}
+              {currentEntry.type === "blank" && ` ${t("editorPanel.blank")}`}
             </span>
             <Button variant="outline" disabled={currentPos >= pageOrder.length - 1} onClick={() => movePosition(1)}>
-              Next ➡
+              {t("editorPanel.next")}
             </Button>
 
             <span className="mx-1 h-4 w-px bg-border" />
 
-            <Button variant="outline" disabled={currentPos === 0} onClick={() => reorderPage(-1)} title="Move page up">
-              ↑ Move
+            <Button variant="outline" disabled={currentPos === 0} onClick={() => reorderPage(-1)} title={t("editorPanel.moveUpTooltip")}>
+              {t("editorPanel.moveUp")}
             </Button>
             <Button
               variant="outline"
               disabled={currentPos >= pageOrder.length - 1}
               onClick={() => reorderPage(1)}
-              title="Move page down"
+              title={t("editorPanel.moveDownTooltip")}
             >
-              ↓ Move
+              {t("editorPanel.moveDown")}
             </Button>
             <Button variant="outline" onClick={insertBlankPage}>
-              ➕ Blank Page
+              {t("editorPanel.blankPage")}
             </Button>
             <Button variant="destructive" onClick={deleteCurrentPage}>
-              🗑 Delete Page
+              {t("editorPanel.deletePage")}
             </Button>
 
             {currentEntry.type === "page" &&
@@ -725,9 +726,9 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                     variant="outline"
                     onClick={() => handleOcrPage(currentEntry.origIndex)}
                     disabled={ocrBusy}
-                    title="This page has no selectable text — run OCR to make it editable"
+                    title={t("editorPanel.ocrTooltip")}
                   >
-                    {ocrBusy ? "Scanning page..." : "🔍 OCR This Page"}
+                    {ocrBusy ? t("editorPanel.scanningPage") : t("editorPanel.ocrThisPage")}
                   </Button>
                 </>
               )}
@@ -820,7 +821,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                     <button
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => deleteExistingText(item.key)}
-                      title="Delete this text"
+                      title={t("editorPanel.deleteThisText")}
                       style={{
                         position: "absolute",
                         left: Math.max(item.width, 60) + 2,
@@ -879,7 +880,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                         setActiveStyle(editStyles[item.key] || { ...DEFAULT_STYLE, fontSize: item.pdfFontSize })
                       }
                     }}
-                    title={isDeleted ? "(deleted)" : item.originalText}
+                    title={isDeleted ? t("editorPanel.deletedTitle") : item.originalText}
                     style={{
                       position: "absolute",
                       left: item.left,
@@ -959,7 +960,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {a.text || "(click to type)"}
+                    {a.text || t("editorPanel.clickToType")}
                   </div>
                 )
               )}
@@ -977,13 +978,13 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
             className="w-full max-w-md rounded-2xl border border-white/10 bg-surface p-5"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="mb-3 text-base font-semibold text-text">Add Signature</h3>
+            <h3 className="mb-3 text-base font-semibold text-text">{t("editorPanel.addSignatureModalTitle")}</h3>
             <div className="mb-3 flex gap-2">
               <Button variant={sigTab === "draw" ? "default" : "outline"} onClick={() => setSigTab("draw")}>
-                Draw
+                {t("editorPanel.draw")}
               </Button>
               <Button variant={sigTab === "type" ? "default" : "outline"} onClick={() => setSigTab("type")}>
-                Type
+                {t("editorPanel.type")}
               </Button>
             </div>
 
@@ -1002,9 +1003,9 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                 />
                 <div className="mt-3 flex justify-between gap-2">
                   <Button variant="outline" onClick={clearSigCanvas}>
-                    Clear
+                    {t("editorPanel.clear")}
                   </Button>
-                  <Button onClick={confirmDrawnSignature}>Use This Signature</Button>
+                  <Button onClick={confirmDrawnSignature}>{t("editorPanel.useThisSignature")}</Button>
                 </div>
               </>
             ) : (
@@ -1013,18 +1014,18 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                   autoFocus
                   value={typedSigText}
                   onChange={(e) => setTypedSigText(e.target.value)}
-                  placeholder="Type your name"
+                  placeholder={t("editorPanel.typeYourName")}
                   className="w-full rounded-lg border border-border bg-white px-3 py-2 text-text"
                 />
                 <div
                   className="mt-3 flex h-20 items-center justify-center rounded-lg border border-border bg-white px-3"
                   style={{ fontFamily: "'Segoe Script', 'Brush Script MT', cursive", fontSize: 28, color: "black" }}
                 >
-                  {typedSigText || "Preview"}
+                  {typedSigText || t("editorPanel.preview")}
                 </div>
                 <div className="mt-3 flex justify-end">
                   <Button onClick={confirmTypedSignature} disabled={!typedSigText.trim()}>
-                    Use This Signature
+                    {t("editorPanel.useThisSignature")}
                   </Button>
                 </div>
               </>

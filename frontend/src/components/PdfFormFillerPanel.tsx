@@ -122,7 +122,7 @@ export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
       setPdfDoc(jsDoc)
       setNumPages(jsDoc.numPages)
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Couldn't load the document.")
+      setError(err?.response?.data?.detail || t("editorPanel.errLoadDocument"))
     } finally {
       setLoading(false)
     }
@@ -216,7 +216,7 @@ export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
       form.flatten()
       downloadDoc(await doc.save(), "_filled.pdf")
     } catch (err: any) {
-      setError("Export failed: " + (err?.message || "unknown error"))
+      setError(`${t("editorPanel.errExportFailed")} ` + (err?.message || "unknown error"))
     } finally {
       setExporting(false)
     }
@@ -249,7 +249,7 @@ export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
 
       downloadDoc(await doc.save(), "_fillable.pdf")
     } catch (err: any) {
-      setError("Export failed: " + (err?.message || "unknown error"))
+      setError(`${t("editorPanel.errExportFailed")} ` + (err?.message || "unknown error"))
     } finally {
       setExporting(false)
     }
@@ -299,23 +299,18 @@ export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
       </div>
 
       {error && <p className="text-sm text-danger">{error}</p>}
-      {loading && <LoadingState label="Loading document..." />}
+      {loading && <LoadingState label={t("editorPanel.loadingDocument")} />}
 
       {mode === "fill" && !loading && (
         <>
-          <p className="text-xs text-text-muted">
-            Fill in this PDF's existing form fields, then export a flattened copy with your values baked in as
-            static content. Only works on PDFs that already contain fillable AcroForm fields.
-          </p>
+          <p className="text-xs text-text-muted">{t("formFillerPanel.fillDescription")}</p>
           <div>
             <Button onClick={handleExportFilled} disabled={exporting || fields.length === 0}>
-              {exporting ? "Exporting..." : "⬇ Download Filled PDF"}
+              {exporting ? t("editorPanel.exporting") : `⬇ ${t("formFillerPanel.downloadFilled")}`}
             </Button>
           </div>
           {!error && fields.length === 0 && (
-            <p className="text-sm text-text-muted">
-              This PDF has no fillable form fields. Switch to "Add New Fields" to place some.
-            </p>
+            <p className="text-sm text-text-muted">{t("formFillerPanel.noFieldsMessage")}</p>
           )}
           {fields.length > 0 && (
             <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/3 p-4">
@@ -360,31 +355,28 @@ export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
 
       {mode === "design" && !loading && pdfDoc && (
         <>
-          <p className="text-xs text-text-muted">
-            Click "Text Field" or "Checkbox" then click anywhere on the page to place a fillable field. Export a
-            genuinely fillable PDF that recipients can fill in with any PDF reader.
-          </p>
+          <p className="text-xs text-text-muted">{t("formFillerPanel.designDescription")}</p>
           <div className="flex flex-wrap items-center gap-2">
             <Button variant={addingFieldType === "text" ? "default" : "outline"} onClick={() => setAddingFieldType(addingFieldType === "text" ? null : "text")}>
-              {addingFieldType === "text" ? "Click page to place..." : "➕ Text Field"}
+              {addingFieldType === "text" ? t("formFillerPanel.clickToPlace") : t("formFillerPanel.textField")}
             </Button>
             <Button variant={addingFieldType === "checkbox" ? "default" : "outline"} onClick={() => setAddingFieldType(addingFieldType === "checkbox" ? null : "checkbox")}>
-              {addingFieldType === "checkbox" ? "Click page to place..." : "➕ Checkbox"}
+              {addingFieldType === "checkbox" ? t("formFillerPanel.clickToPlace") : t("formFillerPanel.checkbox")}
             </Button>
             <Button onClick={handleExportFillable} disabled={exporting || designFields.length === 0}>
-              {exporting ? "Exporting..." : `⬇ Download Fillable PDF (${designFields.length} field${designFields.length === 1 ? "" : "s"})`}
+              {exporting ? t("editorPanel.exporting") : `⬇ ${t("formFillerPanel.downloadFillable")} (${designFields.length})`}
             </Button>
           </div>
 
           <div className="flex items-center justify-center gap-2">
             <Button variant="outline" disabled={currentPage === 0} onClick={() => setCurrentPage((p) => p - 1)}>
-              ⬅ Prev
+              {t("editorPanel.prev")}
             </Button>
             <span className="text-sm text-text-muted">
-              Page {currentPage + 1} / {numPages}
+              {t("editorPanel.page")} {currentPage + 1} / {numPages}
             </span>
             <Button variant="outline" disabled={currentPage >= numPages - 1} onClick={() => setCurrentPage((p) => p + 1)}>
-              Next ➡
+              {t("editorPanel.next")}
             </Button>
           </div>
 
