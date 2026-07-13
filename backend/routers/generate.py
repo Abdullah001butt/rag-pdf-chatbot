@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 
 import rag_core
 from deps import get_db, get_current_user, get_user_api_key
-from schemas import GenerateRequest, CompareRequest, ResearchRequest, RewriteTextRequest, RewriteTextResponse
+from schemas import GenerateRequest, CompareRequest, ResearchRequest, RewriteTextRequest, RewriteTextResponse, AgentPlanRequest
 from usage_guard import enforce_action, enforce_not_locked
 from billing import record_usage
 from rag_pipeline import get_or_build_vector_store, get_document_text, resolve_api_key
+from store import get_user_store
 
 router = APIRouter(prefix="/generate", tags=["generate"])
 
@@ -137,3 +138,26 @@ def rewrite_text(
     result = rag_core.rewrite_text(payload.text, payload.instruction, api_key)
     record_usage(db, user.id, "chat")
     return RewriteTextResponse(result=result)
+
+
+@router.post("/agent-plan")
+def agent_plan(
+    payload: AgentPlanRequest,
+    user=Depends(get_current_user),
+    db=Depends(get_db),
+    user_api_key: str | None = Depends(get_user_api_key),
+):
+    enforce_action(db, user, "chat")
+    api_key = _require_api_key(user_api_key)
+    if not payload.goal.strip():
+        raise HTTPException(status_code=400, detail="Please describe what you want the agent to do.")
+    store = get_user_store(user.id)
+    sources = list(store["files"].keys())
+    if not sources:
+        raise HTTPException(status_code=400, detail="Upload at least one document first.")
+    try:
+        steps = rag_core.plan_agent_tasks(payload.goal, sources, api_key)
+    except (ValueError, KeyError) as e:
+        raise HTTPException(status_code=422, detail=f"Couldn't plan the task: {e}")
+    record_usage(db, user.id, "chat")
+    return {"steps": steps}

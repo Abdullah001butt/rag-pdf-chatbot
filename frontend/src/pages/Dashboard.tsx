@@ -12,6 +12,7 @@ import { ResearchPanel } from "@/components/ResearchPanel"
 import { PdfEditorPanel } from "@/components/PdfEditorPanel"
 import { PdfFormFillerPanel } from "@/components/PdfFormFillerPanel"
 import { BatchProcessPanel } from "@/components/BatchProcessPanel"
+import { AgentPanel } from "@/components/AgentPanel"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { LoadingState } from "@/components/Spinner"
 
@@ -26,6 +27,7 @@ const TABS = [
   { key: "editor", label: "✏️ Editor" },
   { key: "formfiller", label: "📝 Form Filler" },
   { key: "batch", label: "⚡ Batch" },
+  { key: "agent", label: "🤖 Agent" },
 ] as const
 
 type TabKey = (typeof TABS)[number]["key"]
@@ -173,6 +175,7 @@ export default function Dashboard() {
               {tab === "editor" && <PdfEditorPanel files={files} />}
               {tab === "formfiller" && <PdfFormFillerPanel files={files} />}
               {tab === "batch" && <BatchProcessPanel files={files} />}
+              {tab === "agent" && <AgentPanel files={files} />}
             </ErrorBoundary>
           )}
         </div>

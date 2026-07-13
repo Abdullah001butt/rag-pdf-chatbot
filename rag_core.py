@@ -283,3 +283,32 @@ def ocr_page_boxes(pdf_bytes, page_index, api_key):
     response = model.invoke([message])
     boxes = parse_json_response(response.content)
     return [b for b in boxes if isinstance(b, dict) and b.get("text", "").strip()]
+
+
+AGENT_PLAN_PROMPT = """You are a planning assistant for a document AI tool. Given the user's goal and the list of
+available documents, decide which of the following actions to run, in order, to accomplish the goal.
+
+Available actions (use ONLY these):
+- "summary": produce a summary. Requires "source" (a filename from the list).
+- "notes": produce structured study notes. Requires "source".
+- "quiz": produce a multiple-choice quiz. Requires "source". Optional "num_questions" (default 5).
+- "flashcards": produce flashcards. Requires "source". Optional "num_cards" (default 10).
+- "research": produce a cited research report across all documents. Requires "topic" (a short question/topic
+  derived from the goal, not a filename).
+
+Available documents: {sources}
+
+User's goal: "{goal}"
+
+Return STRICT JSON only — an array of step objects, each with keys "action", "label" (a short human-readable
+description of the step), and the action's required/optional params as described above. Keep it to the minimum
+steps needed (usually 1-4). If the goal doesn't match any available action, return an empty array. No markdown
+fences, no commentary, only the JSON array."""
+
+
+def plan_agent_tasks(goal, sources, api_key):
+    prompt = AGENT_PLAN_PROMPT.format(sources=", ".join(sources) or "(none uploaded)", goal=goal)
+    raw = generate_with_gemini(prompt, api_key, temperature=0.2)
+    steps = parse_json_response(raw)
+    valid_actions = {"summary", "notes", "quiz", "flashcards", "research"}
+    return [s for s in steps if isinstance(s, dict) and s.get("action") in valid_actions]

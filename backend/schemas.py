@@ -113,4 +113,8 @@ class RewriteTextResponse(BaseModel):
     result: str
 
 
+class AgentPlanRequest(BaseModel):
+    goal: str
+
+
 TokenResponse.model_rebuild()
