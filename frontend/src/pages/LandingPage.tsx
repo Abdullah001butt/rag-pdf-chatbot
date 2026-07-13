@@ -1,6 +1,7 @@
 import { LandingNav } from "@/components/landing/LandingNav"
 import { Hero } from "@/components/landing/Hero"
 import { ProductPreview } from "@/components/landing/ProductPreview"
+import { UseCases } from "@/components/landing/UseCases"
 import { HowItWorks } from "@/components/landing/HowItWorks"
 import { FeatureSplit } from "@/components/landing/FeatureSplit"
 import { EditorSuite } from "@/components/landing/EditorSuite"
@@ -15,6 +16,7 @@ export default function LandingPage() {
       <LandingNav />
       <Hero />
       <ProductPreview />
+      <UseCases />
       <HowItWorks />
       <FeatureSplit />
       <EditorSuite />
