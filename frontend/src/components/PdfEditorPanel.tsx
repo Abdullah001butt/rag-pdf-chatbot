@@ -113,6 +113,8 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
   const [error, setError] = React.useState<string | null>(null)
   const [aiBusyKey, setAiBusyKey] = React.useState<string | null>(null)
   const [redacting, setRedacting] = React.useState(false)
+  const [ocrProcessedPages, setOcrProcessedPages] = React.useState<Set<number>>(new Set())
+  const [ocrBusy, setOcrBusy] = React.useState(false)
   const [addedSignatures, setAddedSignatures] = React.useState<AddedSignature[]>([])
   const [selectedSigId, setSelectedSigId] = React.useState<string | null>(null)
   const [sigModalOpen, setSigModalOpen] = React.useState(false)
@@ -139,6 +141,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
     setPageTextItems({})
     setPageSizes({})
     setCurrentPos(0)
+    setOcrProcessedPages(new Set())
     try {
       const { data } = await api.get("/documents/raw", {
         params: { filename },
@@ -347,6 +350,42 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
   function deleteExistingText(key: string) {
     setEdits((prev) => ({ ...prev, [key]: "" }))
     setEditingKey(null)
+  }
+
+  async function handleOcrPage(origIndex: number) {
+    const pageSize = pageSizes[origIndex]
+    if (!pageSize) return
+    setOcrBusy(true)
+    setError(null)
+    try {
+      const { data } = await api.post("/documents/ocr-page-boxes", null, {
+        params: { filename: source, page_index: origIndex },
+      })
+      const items: TextItemInfo[] = (data.boxes || []).map((box: any, i: number) => {
+        const boxWidthPdf = box.width * pageSize.width
+        const boxHeightPdf = box.height * pageSize.height
+        const boxLeftPdf = box.x * pageSize.width
+        const boxTopFromTopPdf = box.y * pageSize.height
+        const pdfY = pageSize.height - boxTopFromTopPdf - boxHeightPdf
+        return {
+          key: `${origIndex}-${i}`,
+          left: boxLeftPdf * scale,
+          top: boxTopFromTopPdf * scale,
+          width: boxWidthPdf * scale,
+          height: boxHeightPdf * scale,
+          pdfX: boxLeftPdf,
+          pdfY,
+          pdfFontSize: boxHeightPdf * 0.85,
+          originalText: box.text,
+        }
+      })
+      setPageTextItems((prev) => ({ ...prev, [origIndex]: items }))
+      setOcrProcessedPages((prev) => new Set(prev).add(origIndex))
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || "OCR failed for this page.")
+    } finally {
+      setOcrBusy(false)
+    }
   }
 
   async function handleAiRewrite(key: string, instruction: string, isAdded: boolean) {
@@ -674,6 +713,23 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
             <Button variant="destructive" onClick={deleteCurrentPage}>
               🗑 Delete Page
             </Button>
+
+            {currentEntry.type === "page" &&
+              pageSizes[currentEntry.origIndex] &&
+              (pageTextItems[currentEntry.origIndex] || []).length === 0 &&
+              !ocrProcessedPages.has(currentEntry.origIndex) && (
+                <>
+                  <span className="mx-1 h-4 w-px bg-border" />
+                  <Button
+                    variant="outline"
+                    onClick={() => handleOcrPage(currentEntry.origIndex)}
+                    disabled={ocrBusy}
+                    title="This page has no selectable text — run OCR to make it editable"
+                  >
+                    {ocrBusy ? "Scanning page..." : "🔍 OCR This Page"}
+                  </Button>
+                </>
+              )}
           </div>
 
           <div className="overflow-auto rounded-2xl border border-white/10 bg-white/3 p-4">

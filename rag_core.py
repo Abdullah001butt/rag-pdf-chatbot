@@ -257,3 +257,29 @@ def rewrite_text(text, instruction, api_key):
     prompt = REWRITE_TEXT_PROMPT.format(instruction=instruction, text=text)
     result = generate_with_gemini(prompt, api_key, temperature=0.4)
     return result.strip().strip('"')
+
+
+OCR_BOXES_PROMPT = """Extract every distinct line of text from this scanned document page.
+
+Return STRICT JSON only — an array of objects with keys:
+- "text": the line's text content
+- "x": left edge as a fraction of page width (0 to 1)
+- "y": top edge as a fraction of page height (0 to 1), measured from the TOP of the page
+- "width": the line's width as a fraction of page width (0 to 1)
+- "height": the line's height as a fraction of page height (0 to 1)
+
+Estimate the bounding box of each line as accurately as you can from its position in the image. No markdown fences, no commentary, only the JSON array."""
+
+
+def ocr_page_boxes(pdf_bytes, page_index, api_key):
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    pix = doc[page_index].get_pixmap(dpi=200)
+    img_b64 = base64.b64encode(pix.tobytes("png")).decode()
+    model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0, google_api_key=api_key)
+    message = HumanMessage(content=[
+        {"type": "text", "text": OCR_BOXES_PROMPT},
+        {"type": "image_url", "image_url": f"data:image/png;base64,{img_b64}"},
+    ])
+    response = model.invoke([message])
+    boxes = parse_json_response(response.content)
+    return [b for b in boxes if isinstance(b, dict) and b.get("text", "").strip()]
