@@ -5,6 +5,7 @@ import { UseCases } from "@/components/landing/UseCases"
 import { HowItWorks } from "@/components/landing/HowItWorks"
 import { FeatureSplit } from "@/components/landing/FeatureSplit"
 import { EditorSuite } from "@/components/landing/EditorSuite"
+import { Comparison } from "@/components/landing/Comparison"
 import { Pricing } from "@/components/landing/Pricing"
 import { Faq } from "@/components/landing/Faq"
 import { FinalCta } from "@/components/landing/FinalCta"
@@ -20,6 +21,7 @@ export default function LandingPage() {
       <HowItWorks />
       <FeatureSplit />
       <EditorSuite />
+      <Comparison />
       <Pricing />
       <Faq />
       <FinalCta />
