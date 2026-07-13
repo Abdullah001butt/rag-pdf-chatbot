@@ -1,5 +1,6 @@
 import { LandingNav } from "@/components/landing/LandingNav"
 import { Hero } from "@/components/landing/Hero"
+import { TrustBar } from "@/components/landing/TrustBar"
 import { ProductPreview } from "@/components/landing/ProductPreview"
 import { UseCases } from "@/components/landing/UseCases"
 import { HowItWorks } from "@/components/landing/HowItWorks"
@@ -17,6 +18,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-black text-white">
       <LandingNav />
       <Hero />
+      <TrustBar />
       <ProductPreview />
       <UseCases />
       <HowItWorks />
