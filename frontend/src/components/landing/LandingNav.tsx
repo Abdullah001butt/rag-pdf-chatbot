@@ -21,6 +21,9 @@ export function LandingNav() {
           <button onClick={() => scrollTo("how-it-works")} className="transition-colors hover:text-white">
             How it works
           </button>
+          <button onClick={() => scrollTo("editor")} className="transition-colors hover:text-white">
+            Editor
+          </button>
           <button onClick={() => scrollTo("pricing")} className="transition-colors hover:text-white">
             Pricing
           </button>
