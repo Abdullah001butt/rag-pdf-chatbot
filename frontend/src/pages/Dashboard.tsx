@@ -10,6 +10,7 @@ import { FlashcardsPanel } from "@/components/FlashcardsPanel"
 import { ComparePanel } from "@/components/ComparePanel"
 import { ResearchPanel } from "@/components/ResearchPanel"
 import { PdfEditorPanel } from "@/components/PdfEditorPanel"
+import { PdfFormFillerPanel } from "@/components/PdfFormFillerPanel"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { LoadingState } from "@/components/Spinner"
 
@@ -22,6 +23,7 @@ const TABS = [
   { key: "compare", label: "🔀 Compare" },
   { key: "research", label: "🔎 Research" },
   { key: "editor", label: "✏️ Editor" },
+  { key: "formfiller", label: "📝 Form Filler" },
 ] as const
 
 type TabKey = (typeof TABS)[number]["key"]
@@ -167,6 +169,7 @@ export default function Dashboard() {
               {tab === "compare" && <ComparePanel files={files} locked={isLocked("compare")} />}
               {tab === "research" && <ResearchPanel files={files} locked={isLocked("research")} />}
               {tab === "editor" && <PdfEditorPanel files={files} />}
+              {tab === "formfiller" && <PdfFormFillerPanel files={files} />}
             </ErrorBoundary>
           )}
         </div>
