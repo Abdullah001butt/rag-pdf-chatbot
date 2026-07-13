@@ -11,6 +11,7 @@ import { ComparePanel } from "@/components/ComparePanel"
 import { ResearchPanel } from "@/components/ResearchPanel"
 import { PdfEditorPanel } from "@/components/PdfEditorPanel"
 import { PdfFormFillerPanel } from "@/components/PdfFormFillerPanel"
+import { BatchProcessPanel } from "@/components/BatchProcessPanel"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { LoadingState } from "@/components/Spinner"
 
@@ -24,6 +25,7 @@ const TABS = [
   { key: "research", label: "🔎 Research" },
   { key: "editor", label: "✏️ Editor" },
   { key: "formfiller", label: "📝 Form Filler" },
+  { key: "batch", label: "⚡ Batch" },
 ] as const
 
 type TabKey = (typeof TABS)[number]["key"]
@@ -170,6 +172,7 @@ export default function Dashboard() {
               {tab === "research" && <ResearchPanel files={files} locked={isLocked("research")} />}
               {tab === "editor" && <PdfEditorPanel files={files} />}
               {tab === "formfiller" && <PdfFormFillerPanel files={files} />}
+              {tab === "batch" && <BatchProcessPanel files={files} />}
             </ErrorBoundary>
           )}
         </div>
