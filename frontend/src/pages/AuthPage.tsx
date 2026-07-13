@@ -86,6 +86,20 @@ export default function AuthPage() {
             <Button type="submit" disabled={busy} className="mt-2 w-full">
               {busy ? "Please wait..." : mode === "login" ? "Log In" : "Create Account"}
             </Button>
+
+            {mode === "signup" && (
+              <p className="text-center text-xs text-text-muted">
+                By creating an account, you agree to our{" "}
+                <button type="button" onClick={() => navigate("/terms")} className="text-accent hover:underline">
+                  Terms of Service
+                </button>{" "}
+                and{" "}
+                <button type="button" onClick={() => navigate("/privacy")} className="text-accent hover:underline">
+                  Privacy Policy
+                </button>
+                .
+              </p>
+            )}
           </form>
         </Card>
       </div>

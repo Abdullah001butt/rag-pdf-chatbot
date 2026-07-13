@@ -7,6 +7,8 @@ import ForgotPasswordPage from "@/pages/ForgotPasswordPage"
 import ResetPasswordPage from "@/pages/ResetPasswordPage"
 import VerifyEmailPage from "@/pages/VerifyEmailPage"
 import AccountSettingsPage from "@/pages/AccountSettingsPage"
+import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage"
+import TermsOfServicePage from "@/pages/TermsOfServicePage"
 import Dashboard from "@/pages/Dashboard"
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -24,6 +26,8 @@ function AppRoutes() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms" element={<TermsOfServicePage />} />
       <Route
         path="/dashboard"
         element={
