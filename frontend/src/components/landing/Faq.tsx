@@ -26,9 +26,18 @@ function FaqItem({ q, a }: { q: string; a: string }) {
     <div className="border-b border-white/10 py-5 text-left">
       <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between gap-4">
         <span className="font-semibold text-white">{q}</span>
-        <span className={`text-emerald-400 transition-transform ${open ? "rotate-45" : ""}`}>+</span>
+        <motion.span animate={{ rotate: open ? 45 : 0 }} transition={{ duration: 0.25 }} className="text-emerald-400">
+          +
+        </motion.span>
       </button>
-      {open && <p className="mt-3 text-sm leading-relaxed text-white/50">{a}</p>}
+      <motion.div
+        initial={false}
+        animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
+        transition={{ duration: 0.25, ease: "easeInOut" }}
+        className="overflow-hidden"
+      >
+        <p className="mt-3 text-sm leading-relaxed text-white/50">{a}</p>
+      </motion.div>
     </div>
   )
 }
