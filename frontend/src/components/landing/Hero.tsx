@@ -2,8 +2,8 @@ import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { Typewriter } from "@/components/landing/Typewriter"
 
-const HEADLINE_WORDS = ["Understand", "any"]
-const TYPED_WORDS = ["document.", "contract.", "lease.", "report.", "policy."]
+const HEADLINE_WORDS = ["Your", "PDF,"]
+const TYPED_WORDS = ["summarized.", "signed.", "quizzed.", "redacted.", "filled out.", "compared.", "chatted with."]
 
 const wordVariants = {
   hidden: { opacity: 0, y: 24 },
@@ -32,7 +32,7 @@ export function Hero() {
         className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-emerald-400"
       >
         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-        AI-Powered Document Analysis
+AI Chat, Editing &amp; E-Signatures for Any PDF
       </motion.div>
 
       <motion.h1
@@ -66,8 +66,8 @@ export function Hero() {
         transition={{ duration: 0.6, delay: 0.4 }}
         className="mx-auto mt-6 max-w-2xl text-lg text-white/50"
       >
-        AI analysis for contracts, leases, reports, and policy docs. Pull out obligations, risks,
-        deadlines, and get source-backed answers — in minutes.
+        Chat, summarize, quiz yourself, compare documents, e-sign, fill forms, redact PII, and edit
+        text — all in one place, with every answer backed by a citation.
       </motion.p>
 
       <motion.div
