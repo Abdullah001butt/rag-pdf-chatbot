@@ -1,7 +1,9 @@
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
+import { Typewriter } from "@/components/landing/Typewriter"
 
 const HEADLINE_WORDS = ["Understand", "any"]
+const TYPED_WORDS = ["document.", "contract.", "lease.", "report.", "policy."]
 
 const wordVariants = {
   hidden: { opacity: 0, y: 24 },
@@ -54,7 +56,7 @@ export function Hero() {
           transition={{ duration: 0.5 }}
           className="block bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent"
         >
-          document.
+          <Typewriter words={TYPED_WORDS} cursorClassName="bg-emerald-400" />
         </motion.span>
       </motion.h1>
 
