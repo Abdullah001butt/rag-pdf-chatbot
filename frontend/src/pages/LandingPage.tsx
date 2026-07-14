@@ -7,6 +7,7 @@ import { HowItWorks } from "@/components/landing/HowItWorks"
 import { FeatureSplit } from "@/components/landing/FeatureSplit"
 import { EditorSuite } from "@/components/landing/EditorSuite"
 import { Comparison } from "@/components/landing/Comparison"
+import { TeamAndApi } from "@/components/landing/TeamAndApi"
 import { Pricing } from "@/components/landing/Pricing"
 import { Security } from "@/components/landing/Security"
 import { Faq } from "@/components/landing/Faq"
@@ -25,6 +26,7 @@ export default function LandingPage() {
       <FeatureSplit />
       <EditorSuite />
       <Comparison />
+      <TeamAndApi />
       <Pricing />
       <Security />
       <Faq />

@@ -20,7 +20,15 @@ const TIERS = [
     suffixKey: "pricing.pro.suffix",
     badgeKey: "pricing.pro.badge",
     // Keep in sync with backend/.env STRIPE_PRO_PRICE_AMOUNT (cents)
-    featureKeys: ["pricing.pro.f1", "pricing.pro.f2", "pricing.pro.f3", "pricing.pro.f4", "pricing.pro.f5"],
+    featureKeys: [
+      "pricing.pro.f1",
+      "pricing.pro.f2",
+      "pricing.pro.f3",
+      "pricing.pro.f4",
+      "pricing.pro.f5",
+      "pricing.pro.f6",
+      "pricing.pro.f7",
+    ],
     ctaKey: "pricing.pro.cta",
     highlighted: true,
   },
