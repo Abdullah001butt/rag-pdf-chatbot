@@ -5,7 +5,7 @@ import rag_core
 from deps import get_db, get_current_user, get_user_api_key
 from usage_guard import enforce_action
 from billing import record_usage
-from rag_pipeline import resolve_api_key, extract_text_from_bytes
+from rag_pipeline import resolve_api_key, extract_text_from_bytes, get_or_build_workspace_vector_store
 from db import (
     User,
     create_workspace,
@@ -20,6 +20,8 @@ from db import (
     list_workspace_documents,
     get_workspace_document,
     delete_workspace_document,
+    save_workspace_chat_message,
+    load_workspace_chat_history,
     MAX_WORKSPACE_MEMBERS,
 )
 
@@ -32,6 +34,10 @@ class CreateWorkspaceRequest(BaseModel):
 
 class InviteRequest(BaseModel):
     username: str
+
+
+class WorkspaceChatRequest(BaseModel):
+    question: str
 
 
 def _require_pro(user):
@@ -282,3 +288,45 @@ def generate_flashcards(
         raise HTTPException(status_code=422, detail=f"Couldn't parse flashcard output: {e}")
     record_usage(db, user.id, "flashcards")
     return {"result": result}
+
+
+@router.get("/{workspace_id}/chat/history")
+def workspace_chat_history(workspace_id: int, user=Depends(get_current_user), db=Depends(get_db)):
+    _require_membership(db, workspace_id, user.id)
+    rows = load_workspace_chat_history(db, workspace_id)
+    users_by_id = {u.id: u for u in db.query(User).filter(User.id.in_([r.asked_by_id for r in rows])).all()}
+    return [
+        {
+            "question": r.question,
+            "answer": r.answer,
+            "citations": r.citations.split("; ") if r.citations else [],
+            "asked_by": users_by_id[r.asked_by_id].username if r.asked_by_id in users_by_id else "unknown",
+        }
+        for r in rows
+    ]
+
+
+@router.post("/{workspace_id}/chat/ask")
+def workspace_chat_ask(
+    workspace_id: int,
+    payload: WorkspaceChatRequest,
+    user=Depends(get_current_user),
+    db=Depends(get_db),
+    user_api_key: str | None = Depends(get_user_api_key),
+):
+    _require_membership(db, workspace_id, user.id)
+    enforce_action(db, user, "chat")
+    api_key = _require_api_key(user_api_key)
+    if not payload.question.strip():
+        raise HTTPException(status_code=400, detail="Please enter a question.")
+
+    vector_store = get_or_build_workspace_vector_store(db, workspace_id, api_key)
+    history_rows = load_workspace_chat_history(db, workspace_id)
+    history_pairs = [(r.question, r.answer) for r in history_rows]
+
+    answer, citations, not_found = rag_core.answer_question(vector_store, payload.question, api_key, history_pairs)
+
+    save_workspace_chat_message(db, workspace_id, user.id, payload.question, answer, "; ".join(citations))
+    record_usage(db, user.id, "chat")
+
+    return {"answer": answer, "citations": citations, "not_found": not_found}

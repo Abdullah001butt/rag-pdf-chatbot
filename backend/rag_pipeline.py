@@ -2,7 +2,7 @@ from fastapi import HTTPException
 
 import rag_core
 from config import GOOGLE_API_KEY
-from store import get_user_store
+from store import get_user_store, get_workspace_store
 
 
 def resolve_api_key(user_api_key=None):
@@ -62,3 +62,31 @@ def extract_text_from_bytes(filename, file_bytes, api_key, max_chars=30000):
         raise HTTPException(status_code=422, detail=f"Couldn't extract any text from '{filename}'.")
     text = "\n\n".join(f"[Page {p}]\n{t}" for p, t in doc_pages)
     return text[:max_chars]
+
+
+def get_or_build_workspace_vector_store(db_session, workspace_id, api_key):
+    from db import list_workspace_documents
+
+    docs = list_workspace_documents(db_session, workspace_id)
+    if not docs:
+        raise HTTPException(status_code=400, detail="This workspace has no shared documents yet.")
+
+    signature = tuple(sorted((d.id, d.size_bytes) for d in docs))
+    store = get_workspace_store(workspace_id)
+    if store["vector_store"] is not None and store["signature"] == signature:
+        return store["vector_store"]
+
+    pages = []
+    for d in docs:
+        pages.extend(rag_core.get_pdf_text_with_meta(d.filename, d.file_data, api_key))
+
+    text_chunks, metadatas = rag_core.get_text_chunks_with_meta(pages)
+    if not text_chunks:
+        raise HTTPException(
+            status_code=422,
+            detail="Couldn't extract any text from this workspace's documents, even after attempting OCR.",
+        )
+    vector_store = rag_core.build_vector_store(text_chunks, metadatas, api_key)
+    store["vector_store"] = vector_store
+    store["signature"] = signature
+    return vector_store

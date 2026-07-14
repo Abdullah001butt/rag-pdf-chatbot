@@ -176,6 +176,7 @@ class Workspace(Base):
     owner = relationship("User", back_populates="owned_workspaces")
     members = relationship("WorkspaceMember", back_populates="workspace", cascade="all, delete-orphan")
     documents = relationship("WorkspaceDocument", back_populates="workspace", cascade="all, delete-orphan")
+    chat_messages = relationship("WorkspaceChatMessage", cascade="all, delete-orphan")
 
 
 class WorkspaceMember(Base):
@@ -206,8 +207,25 @@ class WorkspaceDocument(Base):
     uploaded_by = relationship("User")
 
 
+class WorkspaceChatMessage(Base):
+    """Shared chat history for a workspace, visible to every member."""
+
+    __tablename__ = "workspace_chat_messages"
+
+    id = Column(Integer, primary_key=True)
+    workspace_id = Column(Integer, ForeignKey("workspaces.id"), nullable=False)
+    asked_by_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    question = Column(Text, nullable=False)
+    answer = Column(Text, nullable=False)
+    citations = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    asked_by = relationship("User")
+
+
 MAX_WORKSPACE_MEMBERS = 20
 MAX_WORKSPACE_DOCUMENTS = 100
+MAX_WORKSPACE_CHAT_MESSAGES = 200
 
 
 def init_db():
@@ -567,3 +585,40 @@ def delete_workspace_document(db_session, workspace_id, document_id):
         db_session.commit()
         return True
     return False
+
+
+def save_workspace_chat_message(db_session, workspace_id, asked_by_id, question, answer, citations):
+    msg = WorkspaceChatMessage(
+        workspace_id=workspace_id,
+        asked_by_id=asked_by_id,
+        question=question,
+        answer=answer,
+        citations=citations,
+    )
+    db_session.add(msg)
+    db_session.flush()
+
+    total = db_session.query(WorkspaceChatMessage).filter(WorkspaceChatMessage.workspace_id == workspace_id).count()
+    if total > MAX_WORKSPACE_CHAT_MESSAGES:
+        oldest = (
+            db_session.query(WorkspaceChatMessage)
+            .filter(WorkspaceChatMessage.workspace_id == workspace_id)
+            .order_by(WorkspaceChatMessage.created_at)
+            .first()
+        )
+        if oldest:
+            db_session.delete(oldest)
+
+    db_session.commit()
+    return msg
+
+
+def load_workspace_chat_history(db_session, workspace_id, limit=50):
+    rows = (
+        db_session.query(WorkspaceChatMessage)
+        .filter(WorkspaceChatMessage.workspace_id == workspace_id)
+        .order_by(WorkspaceChatMessage.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    return list(reversed(rows))

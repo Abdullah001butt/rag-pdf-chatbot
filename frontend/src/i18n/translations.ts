@@ -518,6 +518,8 @@ const en: Dict = {
   "workspaces.invite": "Invite",
   "workspaces.documents": "Shared documents",
   "workspaces.noDocuments": "No documents shared here yet.",
+  "workspaces.teamChat": "Team Chat",
+  "workspaces.noChatYet": "No questions asked yet — ask something about the shared documents.",
 }
 
 const fr: Dict = {
@@ -1011,6 +1013,8 @@ const fr: Dict = {
   "workspaces.invite": "Inviter",
   "workspaces.documents": "Documents partagés",
   "workspaces.noDocuments": "Aucun document partagé pour le moment.",
+  "workspaces.teamChat": "Chat d'équipe",
+  "workspaces.noChatYet": "Aucune question posée pour le moment — posez une question sur les documents partagés.",
 }
 
 const ar: Dict = {
@@ -1504,6 +1508,8 @@ const ar: Dict = {
   "workspaces.invite": "دعوة",
   "workspaces.documents": "المستندات المشتركة",
   "workspaces.noDocuments": "لا توجد مستندات مشتركة هنا بعد.",
+  "workspaces.teamChat": "محادثة الفريق",
+  "workspaces.noChatYet": "لم يتم طرح أي أسئلة بعد — اسأل شيئًا عن المستندات المشتركة.",
 }
 
 const ru: Dict = {
@@ -1997,6 +2003,8 @@ const ru: Dict = {
   "workspaces.invite": "Пригласить",
   "workspaces.documents": "Общие документы",
   "workspaces.noDocuments": "Здесь пока нет общих документов.",
+  "workspaces.teamChat": "Командный чат",
+  "workspaces.noChatYet": "Пока нет вопросов — спросите что-нибудь об общих документах.",
 }
 
 export const translations: Record<Lang, Dict> = { en, fr, ar, ru }

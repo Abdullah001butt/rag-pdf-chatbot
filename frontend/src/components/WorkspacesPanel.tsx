@@ -32,6 +32,13 @@ interface WorkspaceDoc {
   created_at: string
 }
 
+interface ChatTurn {
+  question: string
+  answer: string
+  citations: string[]
+  askedBy: string
+}
+
 export function WorkspacesPanel() {
   const { user } = useAuth()
   const { t } = useLanguage()
@@ -57,6 +64,10 @@ export function WorkspacesPanel() {
   const [resultOpen, setResultOpen] = React.useState(false)
   const [resultTitle, setResultTitle] = React.useState("")
   const [resultText, setResultText] = React.useState("")
+
+  const [chatTurns, setChatTurns] = React.useState<ChatTurn[]>([])
+  const [chatQuestion, setChatQuestion] = React.useState("")
+  const [chatBusy, setChatBusy] = React.useState(false)
 
   const selected = workspaces.find((w) => w.id === selectedId) || null
 
@@ -86,16 +97,44 @@ export function WorkspacesPanel() {
   async function loadDetail(workspaceId: number) {
     setDetailLoading(true)
     try {
-      const [membersRes, docsRes] = await Promise.all([
+      const [membersRes, docsRes, chatRes] = await Promise.all([
         api.get(`/workspaces/${workspaceId}/members`),
         api.get(`/workspaces/${workspaceId}/documents`),
+        api.get(`/workspaces/${workspaceId}/chat/history`),
       ])
       setMembers(membersRes.data.members || [])
       setDocs(docsRes.data.documents || [])
+      setChatTurns(
+        (chatRes.data || []).map((row: any) => ({
+          question: row.question,
+          answer: row.answer,
+          citations: row.citations || [],
+          askedBy: row.asked_by,
+        }))
+      )
     } catch (err: any) {
       toast(err?.response?.data?.detail || "Couldn't load workspace details.", "error")
     } finally {
       setDetailLoading(false)
+    }
+  }
+
+  async function handleChatAsk(e: React.FormEvent) {
+    e.preventDefault()
+    if (!selected || !chatQuestion.trim()) return
+    setChatBusy(true)
+    const q = chatQuestion
+    setChatQuestion("")
+    try {
+      const { data } = await api.post(`/workspaces/${selected.id}/chat/ask`, { question: q })
+      setChatTurns((prev) => [
+        ...prev,
+        { question: q, answer: data.answer, citations: data.citations || [], askedBy: user?.username || "" },
+      ])
+    } catch (err: any) {
+      toast(err?.response?.data?.detail || "Something went wrong.", "error")
+    } finally {
+      setChatBusy(false)
     }
   }
 
@@ -396,6 +435,57 @@ export function WorkspacesPanel() {
                         </span>
                       </div>
                     ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-text">
+                    <Icon name="forum" size={16} />
+                    {t("workspaces.teamChat")}
+                  </h4>
+                  <form onSubmit={handleChatAsk} className="mb-3 flex gap-2">
+                    <Input
+                      placeholder={t("chat.placeholder")}
+                      value={chatQuestion}
+                      onChange={(e) => setChatQuestion(e.target.value)}
+                      disabled={chatBusy}
+                    />
+                    <Button type="submit" disabled={chatBusy || !chatQuestion.trim()} className="shrink-0">
+                      {chatBusy ? t("chat.thinking") : t("chat.ask")}
+                    </Button>
+                  </form>
+                  <div className="flex flex-col gap-3">
+                    {[...chatTurns].reverse().map((turn, i) => (
+                      <div key={i} className="flex flex-col gap-2">
+                        <div className="flex gap-2 rounded-xl border border-white/10 bg-accent/10 px-3 py-2 text-sm">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-accent text-[11px] font-bold text-white">
+                            {turn.askedBy.slice(0, 1).toUpperCase()}
+                          </span>
+                          <div>
+                            <p className="text-text">{turn.question}</p>
+                            <p className="text-xs text-text-muted">{turn.askedBy}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 rounded-xl border border-white/10 bg-white/3 px-3 py-2 text-sm">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#2a2f3d] text-[11px] font-bold text-white">
+                            AI
+                          </span>
+                          <div className="min-w-0">
+                            <p className="whitespace-pre-wrap text-text">{turn.answer}</p>
+                            {turn.citations.length > 0 && (
+                              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                {turn.citations.map((c, ci) => (
+                                  <span key={ci} className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-xs text-text-muted">
+                                    {c}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {chatTurns.length === 0 && <p className="text-sm text-text-muted">{t("workspaces.noChatYet")}</p>}
                   </div>
                 </div>
               </>
