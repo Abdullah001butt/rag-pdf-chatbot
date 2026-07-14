@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Response
 from pydantic import BaseModel
 
-from deps import get_db, get_current_user
+import rag_core
+from deps import get_db, get_current_user, get_user_api_key
+from usage_guard import enforce_action
+from billing import record_usage
+from rag_pipeline import resolve_api_key, extract_text_from_bytes
 from db import (
     User,
     create_workspace,
@@ -188,3 +192,93 @@ def delete_document(workspace_id: int, document_id: int, user=Depends(get_curren
     if not ok:
         raise HTTPException(status_code=404, detail="Document not found.")
     return {"deleted": True}
+
+
+def _require_api_key(user_api_key):
+    api_key = resolve_api_key(user_api_key)
+    if not api_key:
+        raise HTTPException(status_code=400, detail="Please enter your Google API key in the sidebar first.")
+    return api_key
+
+
+def _get_workspace_document_text(db, workspace_id, document_id, api_key):
+    doc = get_workspace_document(db, workspace_id, document_id)
+    if doc is None:
+        raise HTTPException(status_code=404, detail="Document not found.")
+    return doc.filename, extract_text_from_bytes(doc.filename, doc.file_data, api_key)
+
+
+@router.post("/{workspace_id}/documents/{document_id}/generate/summary")
+def generate_summary(
+    workspace_id: int,
+    document_id: int,
+    user=Depends(get_current_user),
+    db=Depends(get_db),
+    user_api_key: str | None = Depends(get_user_api_key),
+):
+    _require_membership(db, workspace_id, user.id)
+    enforce_action(db, user, "summary")
+    api_key = _require_api_key(user_api_key)
+    filename, text = _get_workspace_document_text(db, workspace_id, document_id, api_key)
+    result = rag_core.generate_summary(filename, text, api_key)
+    record_usage(db, user.id, "summary")
+    return {"result": result}
+
+
+@router.post("/{workspace_id}/documents/{document_id}/generate/notes")
+def generate_notes(
+    workspace_id: int,
+    document_id: int,
+    user=Depends(get_current_user),
+    db=Depends(get_db),
+    user_api_key: str | None = Depends(get_user_api_key),
+):
+    _require_membership(db, workspace_id, user.id)
+    enforce_action(db, user, "notes")
+    api_key = _require_api_key(user_api_key)
+    filename, text = _get_workspace_document_text(db, workspace_id, document_id, api_key)
+    result = rag_core.generate_study_notes(filename, text, api_key)
+    record_usage(db, user.id, "notes")
+    return {"result": result}
+
+
+@router.post("/{workspace_id}/documents/{document_id}/generate/quiz")
+def generate_quiz(
+    workspace_id: int,
+    document_id: int,
+    num_questions: int = 5,
+    user=Depends(get_current_user),
+    db=Depends(get_db),
+    user_api_key: str | None = Depends(get_user_api_key),
+):
+    _require_membership(db, workspace_id, user.id)
+    enforce_action(db, user, "quiz")
+    api_key = _require_api_key(user_api_key)
+    filename, text = _get_workspace_document_text(db, workspace_id, document_id, api_key)
+    try:
+        result = rag_core.generate_quiz(filename, text, api_key, num_questions)
+    except (ValueError, KeyError) as e:
+        raise HTTPException(status_code=422, detail=f"Couldn't parse quiz output: {e}")
+    record_usage(db, user.id, "quiz")
+    return {"result": result}
+
+
+@router.post("/{workspace_id}/documents/{document_id}/generate/flashcards")
+def generate_flashcards(
+    workspace_id: int,
+    document_id: int,
+    num_cards: int = 10,
+    user=Depends(get_current_user),
+    db=Depends(get_db),
+    user_api_key: str | None = Depends(get_user_api_key),
+):
+    _require_membership(db, workspace_id, user.id)
+    enforce_action(db, user, "flashcards")
+    api_key = _require_api_key(user_api_key)
+    filename, text = _get_workspace_document_text(db, workspace_id, document_id, api_key)
+    try:
+        result = rag_core.generate_flashcards(filename, text, api_key, num_cards)
+    except (ValueError, KeyError) as e:
+        raise HTTPException(status_code=422, detail=f"Couldn't parse flashcard output: {e}")
+    record_usage(db, user.id, "flashcards")
+    return {"result": result}

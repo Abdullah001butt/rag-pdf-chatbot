@@ -52,6 +52,12 @@ export function WorkspacesPanel() {
   const [uploading, setUploading] = React.useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
+  const [menuOpenDocId, setMenuOpenDocId] = React.useState<number | null>(null)
+  const [generating, setGenerating] = React.useState(false)
+  const [resultOpen, setResultOpen] = React.useState(false)
+  const [resultTitle, setResultTitle] = React.useState("")
+  const [resultText, setResultText] = React.useState("")
+
   const selected = workspaces.find((w) => w.id === selectedId) || null
 
   React.useEffect(() => {
@@ -194,6 +200,32 @@ export function WorkspacesPanel() {
     }
   }
 
+  async function handleGenerate(doc: WorkspaceDoc, action: "summary" | "notes" | "quiz" | "flashcards") {
+    if (!selected) return
+    setMenuOpenDocId(null)
+    setGenerating(true)
+    try {
+      const { data } = await api.post(`/workspaces/${selected.id}/documents/${doc.id}/generate/${action}`)
+      let text = ""
+      if (action === "summary" || action === "notes") {
+        text = data.result
+      } else if (action === "quiz") {
+        text = data.result
+          .map((q: any, i: number) => `Q${i + 1}. ${q.question}\nAnswer: ${q.correct} — ${q.explanation}`)
+          .join("\n\n")
+      } else {
+        text = data.result.map((c: any, i: number) => `${i + 1}. Q: ${c.question}\n   A: ${c.answer}`).join("\n\n")
+      }
+      setResultTitle(`${t(`dash.tab.${action}`)} — ${doc.filename}`)
+      setResultText(text)
+      setResultOpen(true)
+    } catch (err: any) {
+      toast(err?.response?.data?.detail || "Generation failed.", "error")
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   if (!isPro) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-8 text-center">
@@ -328,7 +360,27 @@ export function WorkspacesPanel() {
                           <span className="truncate">{d.filename}</span>
                           <span className="shrink-0 text-xs text-text-muted">· {d.uploaded_by}</span>
                         </span>
-                        <span className="flex shrink-0 gap-1.5">
+                        <span className="relative flex shrink-0 gap-1.5">
+                          <button
+                            onClick={() => setMenuOpenDocId(menuOpenDocId === d.id ? null : d.id)}
+                            disabled={generating}
+                            className="flex items-center gap-1 rounded-md border border-accent/30 bg-accent/10 px-2 py-1 text-accent disabled:opacity-50"
+                          >
+                            <Icon name="auto_awesome" size={13} />
+                          </button>
+                          {menuOpenDocId === d.id && (
+                            <div className="absolute right-0 top-full z-20 mt-1 w-40 overflow-hidden rounded-lg border border-white/10 bg-surface-2 py-1 shadow-xl">
+                              {(["summary", "notes", "quiz", "flashcards"] as const).map((action) => (
+                                <button
+                                  key={action}
+                                  onClick={() => handleGenerate(d, action)}
+                                  className="block w-full px-3 py-1.5 text-left text-xs text-text hover:bg-white/5"
+                                >
+                                  {t(`dash.tab.${action}`)}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                           <button
                             onClick={() => handleDownload(d)}
                             className="rounded-md border border-border px-2 py-1 text-text-muted"
@@ -351,6 +403,28 @@ export function WorkspacesPanel() {
           </div>
         )}
       </div>
+
+      {resultOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setResultOpen(false)}
+        >
+          <div
+            className="flex max-h-[80vh] w-full max-w-lg flex-col rounded-2xl border border-white/10 bg-surface p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h3 className="truncate text-sm font-semibold text-text">{resultTitle}</h3>
+              <button onClick={() => setResultOpen(false)} className="shrink-0 rounded-full p-1 text-text-muted hover:bg-white/10 hover:text-text">
+                <Icon name="close" size={16} />
+              </button>
+            </div>
+            <div className="scrollbar-thin flex-1 overflow-y-auto whitespace-pre-wrap text-sm text-text-muted">
+              {resultText}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

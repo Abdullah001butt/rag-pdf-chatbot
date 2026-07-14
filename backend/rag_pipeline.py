@@ -49,3 +49,16 @@ def get_document_text(user_id, api_key, source_name, max_chars=30000):
         raise HTTPException(status_code=404, detail=f"Document '{source_name}' not found in your uploads.")
     text = "\n\n".join(f"[Page {p}]\n{t}" for p, t in doc_pages)
     return text[:max_chars]
+
+
+def extract_text_from_bytes(filename, file_bytes, api_key, max_chars=30000):
+    """Extract text straight from raw PDF bytes, bypassing the per-user
+    in-memory store — used for workspace documents, which live in the
+    database rather than a session's document store.
+    """
+    pages = rag_core.get_pdf_text_with_meta(filename, file_bytes, api_key)
+    doc_pages = sorted([(p, t) for t, s, p in pages if s == filename])
+    if not doc_pages:
+        raise HTTPException(status_code=422, detail=f"Couldn't extract any text from '{filename}'.")
+    text = "\n\n".join(f"[Page {p}]\n{t}" for p, t in doc_pages)
+    return text[:max_chars]
