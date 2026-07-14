@@ -18,20 +18,21 @@ import { AgentPanel } from "@/components/AgentPanel"
 import { AutomationsPanel } from "@/components/AutomationsPanel"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { LoadingState } from "@/components/Spinner"
+import { Icon } from "@/components/ui/icon"
 
 const TABS = [
-  { key: "chat", icon: "💬", labelKey: "dash.tab.chat" },
-  { key: "summary", icon: "📝", labelKey: "dash.tab.summary" },
-  { key: "notes", icon: "📖", labelKey: "dash.tab.notes" },
-  { key: "quiz", icon: "❓", labelKey: "dash.tab.quiz" },
-  { key: "flashcards", icon: "🗂", labelKey: "dash.tab.flashcards" },
-  { key: "compare", icon: "🔀", labelKey: "dash.tab.compare" },
-  { key: "research", icon: "🔎", labelKey: "dash.tab.research" },
-  { key: "editor", icon: "✏️", labelKey: "dash.tab.editor" },
-  { key: "formfiller", icon: "📝", labelKey: "dash.tab.formfiller" },
-  { key: "batch", icon: "⚡", labelKey: "dash.tab.batch" },
-  { key: "agent", icon: "🤖", labelKey: "dash.tab.agent" },
-  { key: "automations", icon: "🔁", labelKey: "dash.tab.automations" },
+  { key: "chat", icon: "chat", labelKey: "dash.tab.chat" },
+  { key: "summary", icon: "summarize", labelKey: "dash.tab.summary" },
+  { key: "notes", icon: "menu_book", labelKey: "dash.tab.notes" },
+  { key: "quiz", icon: "quiz", labelKey: "dash.tab.quiz" },
+  { key: "flashcards", icon: "style", labelKey: "dash.tab.flashcards" },
+  { key: "compare", icon: "difference", labelKey: "dash.tab.compare" },
+  { key: "research", icon: "travel_explore", labelKey: "dash.tab.research" },
+  { key: "editor", icon: "edit_document", labelKey: "dash.tab.editor" },
+  { key: "formfiller", icon: "assignment", labelKey: "dash.tab.formfiller" },
+  { key: "batch", icon: "bolt", labelKey: "dash.tab.batch" },
+  { key: "agent", icon: "smart_toy", labelKey: "dash.tab.agent" },
+  { key: "automations", icon: "cycle", labelKey: "dash.tab.automations" },
 ] as const
 
 type TabKey = (typeof TABS)[number]["key"]
@@ -82,10 +83,12 @@ export default function Dashboard() {
 
   const isLocked = (feature: string) => billing?.locked_features.includes(feature) ?? false
 
+  const activeTab = TABS.find((tabItem) => tabItem.key === tab)
+
   return (
-    <div className="flex h-screen flex-col md:flex-row">
+    <div className="flex h-screen flex-col bg-black md:flex-row">
       {/* Mobile top bar */}
-      <div className="flex items-center justify-between border-b border-border p-4 md:hidden">
+      <div className="flex items-center justify-between border-b border-border bg-surface-2/60 p-4 md:hidden">
         <div className="flex items-center gap-2">
           <img src="/logo.png" alt="Documind AI" className="h-7 w-auto" onError={(e) => (e.currentTarget.style.display = "none")} />
           <span className="font-semibold text-text">Documind AI</span>
@@ -93,9 +96,10 @@ export default function Dashboard() {
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
           <button
-            className="rounded-lg border border-border px-3 py-1.5 text-sm text-text"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-text"
             onClick={() => setSidebarOpen((o) => !o)}
           >
+            <Icon name={sidebarOpen ? "close" : "menu"} size={18} />
             {sidebarOpen ? t("dash.close") : t("dash.menu")}
           </button>
         </div>
@@ -108,48 +112,66 @@ export default function Dashboard() {
       <main className="flex flex-1 flex-col overflow-hidden">
         {user && !user.email_verified && (
           <div className="flex items-center justify-between gap-3 border-b border-warning/30 bg-warning/10 px-5 py-2 text-sm text-text">
-            <span>{t("dash.verifyEmail")}</span>
-            <button className="font-semibold text-warning hover:underline" onClick={() => navigate("/account")}>
+            <span className="flex items-center gap-2">
+              <Icon name="mail" size={16} className="text-warning" />
+              {t("dash.verifyEmail")}
+            </span>
+            <button
+              className="inline-flex items-center gap-1 font-semibold text-warning hover:underline"
+              onClick={() => navigate("/account")}
+            >
               {t("dash.verifyNow")}
+              <Icon name="arrow_forward" size={16} />
             </button>
           </div>
         )}
         {checkoutNotice && (
           <div className="flex items-center justify-between gap-3 border-b border-accent/30 bg-accent/10 px-5 py-2 text-sm text-text">
-            <span>{checkoutNotice}</span>
-            <button className="text-text-muted hover:text-text" onClick={() => setCheckoutNotice(null)}>
-              ✕
+            <span className="flex items-center gap-2">
+              <Icon name="check_circle" size={16} className="text-accent" />
+              {checkoutNotice}
+            </span>
+            <button
+              className="rounded-full p-0.5 text-text-muted hover:bg-white/10 hover:text-text"
+              onClick={() => setCheckoutNotice(null)}
+            >
+              <Icon name="close" size={16} />
             </button>
           </div>
         )}
-        <header className="hidden items-center gap-3 border-b border-border p-5 md:flex">
-          <img src="/logo.png" alt="Documind AI" className="h-8 w-auto" onError={(e) => (e.currentTarget.style.display = "none")} />
-          <div className="flex-1">
-            <p className="font-extrabold leading-tight text-text">
-              Documind <span className="text-accent">AI</span>
-            </p>
-            <p className="text-xs text-text-muted">{t("dash.tagline")}</p>
+        <header className="hidden items-center gap-3 border-b border-border bg-surface-2/40 px-6 py-4 md:flex">
+          <div className="flex flex-1 items-center gap-2.5 min-w-0">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-accent/25 bg-accent/10 text-accent">
+              <Icon name={activeTab?.icon ?? "dashboard"} size={20} filled />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-[15px] font-semibold leading-tight text-text">
+                {activeTab ? t(activeTab.labelKey) : "Documind AI"}
+              </p>
+              <p className="truncate text-xs text-text-muted">{t("dash.tagline")}</p>
+            </div>
           </div>
           <LanguageSwitcher />
         </header>
 
-        <nav className="flex gap-1.5 overflow-x-auto border-b border-border px-4 py-3 md:px-6">
+        <nav className="scrollbar-thin flex gap-1 overflow-x-auto border-b border-border bg-surface/60 px-4 py-2.5 md:px-6">
           {TABS.map((tabItem) => (
             <button
               key={tabItem.key}
               onClick={() => setTab(tabItem.key)}
-              className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-semibold transition-colors ${
                 tab === tabItem.key
-                  ? "border border-accent/30 bg-accent/10 text-accent"
-                  : "border border-transparent text-text-muted hover:text-text"
+                  ? "bg-accent/12 text-accent shadow-[inset_0_0_0_1px_rgba(16,185,129,0.35)]"
+                  : "text-text-muted hover:bg-white/5 hover:text-text"
               }`}
             >
-              {tabItem.icon} {t(tabItem.labelKey)}
+              <Icon name={tabItem.icon} size={18} filled={tab === tabItem.key} />
+              {t(tabItem.labelKey)}
             </button>
           ))}
         </nav>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="scrollbar-thin flex-1 overflow-y-auto p-4 md:p-6">
           {loading ? (
             <LoadingState label={t("dash.loadingWorkspace")} />
           ) : (

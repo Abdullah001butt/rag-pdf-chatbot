@@ -6,6 +6,7 @@ import { useLanguage } from "@/context/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Icon } from "@/components/ui/icon"
 
 interface SidebarProps {
   files: string[]
@@ -75,11 +76,29 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
   }
 
   return (
-    <aside className="flex h-full w-full flex-col gap-6 border-r border-white/10 bg-black p-5 md:w-72">
+    <aside className="scrollbar-thin flex h-full w-full flex-col gap-6 overflow-y-auto border-r border-white/10 bg-surface p-5 md:w-72">
+      <div className="flex items-center gap-2.5 border-b border-white/8 pb-4">
+        <img src="/logo.png" alt="Documind AI" className="h-8 w-auto" onError={(e) => (e.currentTarget.style.display = "none")} />
+        <div>
+          <p className="text-sm font-extrabold leading-tight text-text">
+            Documind <span className="text-accent">AI</span>
+          </p>
+          <p className="text-[11px] text-text-muted">{t("dash.tagline")}</p>
+        </div>
+      </div>
+
       <div>
-        <div className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">{t("sidebar.account")}</div>
-        <div className="rounded-2xl border border-white/10 bg-white/3 p-4">
-          <div className="mb-2 font-bold text-text">{user?.username}</div>
+        <div className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">
+          <Icon name="account_circle" size={16} />
+          {t("sidebar.account")}
+        </div>
+        <div className="card-surface rounded-2xl p-4">
+          <div className="mb-2 flex items-center gap-2 font-bold text-text">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15 text-xs font-bold text-accent">
+              {(user?.username || "?").slice(0, 1).toUpperCase()}
+            </span>
+            <span className="truncate">{user?.username}</span>
+          </div>
           <Badge variant={billing?.tier === "pro" ? "pro" : "default"}>
             {billing?.label ?? "Free"} {t("sidebar.plan")}
           </Badge>
@@ -91,26 +110,36 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
         </div>
         {billing?.tier === "free" ? (
           <Button className="mt-2 w-full" onClick={handleUpgrade} disabled={checkingOut}>
+            <Icon name="workspace_premium" size={17} />
             {checkingOut ? t("sidebar.redirecting") : t("sidebar.upgradeToPro")}
           </Button>
         ) : (
           <>
-            <p className="mt-2 text-xs text-text-muted">{t("sidebar.unlimitedActions")}</p>
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-text-muted">
+              <Icon name="verified" size={15} className="text-accent" />
+              {t("sidebar.unlimitedActions")}
+            </p>
             <Button variant="outline" className="mt-2 w-full" onClick={handleManageBilling} disabled={managingBilling}>
+              <Icon name="credit_card" size={17} />
               {managingBilling ? t("sidebar.opening") : t("sidebar.manageBilling")}
             </Button>
           </>
         )}
         <Button variant="outline" className="mt-2 w-full" onClick={() => navigate("/account")}>
+          <Icon name="settings" size={17} />
           {t("sidebar.accountSettings")}
         </Button>
         <Button variant="outline" className="mt-2 w-full" onClick={logout}>
+          <Icon name="logout" size={17} />
           {t("sidebar.logOut")}
         </Button>
       </div>
 
       <div>
-        <div className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">{t("sidebar.googleApiKey")}</div>
+        <div className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">
+          <Icon name="key" size={16} />
+          {t("sidebar.googleApiKey")}
+        </div>
         <div className="flex gap-1">
           <Input
             type={showApiKey ? "text" : "password"}
@@ -121,10 +150,10 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
           <button
             type="button"
             onClick={() => setShowApiKey((s) => !s)}
-            className="shrink-0 rounded-lg border border-white/10 px-2 text-xs text-text-muted hover:bg-white/5"
+            className="shrink-0 rounded-lg border border-white/10 px-2 text-text-muted hover:bg-white/5"
             title={showApiKey ? "Hide" : "Show"}
           >
-            {showApiKey ? "🙈" : "👁"}
+            <Icon name={showApiKey ? "visibility_off" : "visibility"} size={17} />
           </button>
         </div>
         <p className="mt-1.5 text-xs text-text-muted">
@@ -134,11 +163,19 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
           </a>{" "}
           {t("sidebar.apiKeyHelp3")}
         </p>
-        {!apiKey && <p className="mt-1 text-xs text-warning">{t("sidebar.apiKeyRequired")}</p>}
+        {!apiKey && (
+          <p className="mt-1 flex items-center gap-1 text-xs text-warning">
+            <Icon name="warning" size={14} />
+            {t("sidebar.apiKeyRequired")}
+          </p>
+        )}
       </div>
 
       <div>
-        <div className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">{t("sidebar.documents")}</div>
+        <div className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">
+          <Icon name="description" size={16} />
+          {t("sidebar.documents")}
+        </div>
         <input ref={fileInputRef} type="file" accept=".pdf" multiple onChange={handleUpload} className="hidden" id="pdf-upload" />
         <Button
           className="w-full cursor-pointer"
@@ -146,17 +183,24 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
           onClick={() => fileInputRef.current?.click()}
           type="button"
         >
+          <Icon name="upload_file" size={17} />
           {uploading ? t("sidebar.uploading") : t("sidebar.uploadPdfs")}
         </Button>
-        {error && <p className="mt-2 text-xs text-danger">{error}</p>}
+        {error && (
+          <p className="mt-2 flex items-center gap-1 text-xs text-danger">
+            <Icon name="error" size={14} />
+            {error}
+          </p>
+        )}
         <ul className="mt-3 flex flex-col gap-1.5">
           {files.map((f) => (
             <li
               key={f}
-              className="truncate rounded-lg border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-text-muted"
+              className="flex items-center gap-1.5 truncate rounded-lg border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-text-muted"
               title={f}
             >
-              📄 {f}
+              <Icon name="picture_as_pdf" size={15} className="shrink-0 text-danger/80" />
+              <span className="truncate">{f}</span>
             </li>
           ))}
           {files.length === 0 && <li className="text-xs text-text-muted">{t("sidebar.noDocuments")}</li>}

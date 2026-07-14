@@ -4,6 +4,7 @@ import { useLanguage } from "@/context/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { LoadingState } from "@/components/Spinner"
+import { Icon } from "@/components/ui/icon"
 
 interface Rule {
   id: number
@@ -117,13 +118,21 @@ export function AutomationsPanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="text-lg font-semibold text-text">{t("automations.title")}</h2>
-        <p className="text-xs text-text-muted">{t("automations.description")}</p>
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-accent/25 bg-accent/10 text-accent">
+          <Icon name="cycle" size={19} filled />
+        </span>
+        <div>
+          <h2 className="text-lg font-semibold text-text">{t("automations.title")}</h2>
+          <p className="text-xs text-text-muted">{t("automations.description")}</p>
+        </div>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/3 p-4">
-        <h3 className="text-sm font-semibold text-text">{t("automations.createTitle")}</h3>
+      <div className="card-surface flex flex-col gap-3 rounded-2xl p-4">
+        <h3 className="flex items-center gap-1.5 text-sm font-semibold text-text">
+          <Icon name="add_circle" size={17} />
+          {t("automations.createTitle")}
+        </h3>
         <Input placeholder={t("automations.namePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} />
         <Input
           placeholder={t("automations.keywordPlaceholder")}
@@ -144,7 +153,8 @@ export function AutomationsPanel() {
         </label>
         <div>
           <Button onClick={handleCreate} disabled={creating || !name.trim() || selectedActions.size === 0}>
-            {creating ? t("common.generating") : `⚡ ${t("automations.create")}`}
+            <Icon name="bolt" size={17} />
+            {creating ? t("common.generating") : t("automations.create")}
           </Button>
         </div>
       </div>
@@ -162,10 +172,10 @@ export function AutomationsPanel() {
                 <div key={r.id} className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/3 px-4 py-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-text">{r.name}</p>
-                    <p className="text-xs text-text-muted">
+                    <p className="flex items-center gap-1 text-xs text-text-muted">
                       {r.match_keyword ? `"${r.match_keyword}" · ` : ""}
                       {r.actions.map((a) => t(ACTION_OPTIONS.find((o) => o.key === a)?.labelKey || a)).join(", ")}
-                      {r.deliver_email ? ` · ✉️` : ""}
+                      {r.deliver_email && <Icon name="mail" size={13} />}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
@@ -175,8 +185,8 @@ export function AutomationsPanel() {
                     >
                       {r.enabled ? t("automations.enabled") : t("automations.disabled")}
                     </button>
-                    <button onClick={() => handleDelete(r.id)} className="rounded-md border border-danger/30 bg-danger/10 px-2 py-1 text-xs text-danger">
-                      🗑
+                    <button onClick={() => handleDelete(r.id)} className="rounded-md border border-danger/30 bg-danger/10 px-2 py-1 text-danger">
+                      <Icon name="delete" size={15} />
                     </button>
                   </div>
                 </div>
