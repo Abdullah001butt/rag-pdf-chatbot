@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { Typewriter } from "@/components/landing/Typewriter"
 import { useLanguage } from "@/context/LanguageContext"
+import { Icon } from "@/components/ui/icon"
 
 const TYPED_KEYS = [
   "usecases.typed.you",
@@ -12,12 +13,12 @@ const TYPED_KEYS = [
 ]
 
 const CASES = [
-  { icon: "🎓", titleKey: "usecases.students.title", bodyKey: "usecases.students.body" },
-  { icon: "⚖️", titleKey: "usecases.legal.title", bodyKey: "usecases.legal.body" },
-  { icon: "🏠", titleKey: "usecases.realestate.title", bodyKey: "usecases.realestate.body" },
-  { icon: "🔬", titleKey: "usecases.researchers.title", bodyKey: "usecases.researchers.body" },
-  { icon: "🧑‍💼", titleKey: "usecases.hr.title", bodyKey: "usecases.hr.body" },
-  { icon: "🧾", titleKey: "usecases.freelancers.title", bodyKey: "usecases.freelancers.body" },
+  { icon: "school", titleKey: "usecases.students.title", bodyKey: "usecases.students.body" },
+  { icon: "gavel", titleKey: "usecases.legal.title", bodyKey: "usecases.legal.body" },
+  { icon: "home", titleKey: "usecases.realestate.title", bodyKey: "usecases.realestate.body" },
+  { icon: "science", titleKey: "usecases.researchers.title", bodyKey: "usecases.researchers.body" },
+  { icon: "badge", titleKey: "usecases.hr.title", bodyKey: "usecases.hr.body" },
+  { icon: "receipt_long", titleKey: "usecases.freelancers.title", bodyKey: "usecases.freelancers.body" },
 ]
 
 export function UseCases() {
@@ -45,8 +46,8 @@ export function UseCases() {
             transition={{ duration: 0.5, delay: i * 0.06 }}
             className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 text-left transition-colors hover:border-emerald-500/30 hover:bg-white/[0.04]"
           >
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-lg">
-              {c.icon}
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+              <Icon name={c.icon} size={20} />
             </div>
             <h3 className="mb-2 text-base font-bold text-white">{t(c.titleKey)}</h3>
             <p className="text-sm leading-relaxed text-white/50">{t(c.bodyKey)}</p>

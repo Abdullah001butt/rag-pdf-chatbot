@@ -1,13 +1,14 @@
 import { motion } from "framer-motion"
 import { useLanguage } from "@/context/LanguageContext"
+import { Icon } from "@/components/ui/icon"
 
 const BADGE_KEYS = [
-  { icon: "⚡", key: "trustbar.gemini" },
-  { icon: "💳", key: "trustbar.stripe" },
-  { icon: "🔍", key: "trustbar.ocr" },
-  { icon: "🔒", key: "trustbar.https" },
-  { icon: "🐘", key: "trustbar.postgres" },
-  { icon: "📧", key: "trustbar.email" },
+  { icon: "bolt", key: "trustbar.gemini" },
+  { icon: "credit_card", key: "trustbar.stripe" },
+  { icon: "document_scanner", key: "trustbar.ocr" },
+  { icon: "lock", key: "trustbar.https" },
+  { icon: "storage", key: "trustbar.postgres" },
+  { icon: "mail", key: "trustbar.email" },
 ]
 
 export function TrustBar() {
@@ -30,7 +31,7 @@ export function TrustBar() {
             transition={{ duration: 0.4, delay: i * 0.05 }}
             className="flex items-center gap-2 text-sm font-medium text-white/40 transition-colors hover:text-emerald-400"
           >
-            <span className="text-base">{b.icon}</span>
+            <Icon name={b.icon} size={17} />
             {t(b.key)}
           </motion.div>
         ))}

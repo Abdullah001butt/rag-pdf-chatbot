@@ -1,16 +1,17 @@
 import { motion } from "framer-motion"
 import { Typewriter } from "@/components/landing/Typewriter"
 import { useLanguage } from "@/context/LanguageContext"
+import { Icon } from "@/components/ui/icon"
 
 const TYPED_KEYS = ["security.typed.private", "security.typed.yours", "security.typed.secure", "security.typed.offDisk"]
 
 const POINTS = [
-  { icon: "🔑", titleKey: "security.p1.title", bodyKey: "security.p1.body" },
-  { icon: "🧠", titleKey: "security.p2.title", bodyKey: "security.p2.body" },
-  { icon: "🔒", titleKey: "security.p3.title", bodyKey: "security.p3.body" },
-  { icon: "💳", titleKey: "security.p4.title", bodyKey: "security.p4.body" },
-  { icon: "🛡️", titleKey: "security.p5.title", bodyKey: "security.p5.body" },
-  { icon: "📧", titleKey: "security.p6.title", bodyKey: "security.p6.body" },
+  { icon: "key", titleKey: "security.p1.title", bodyKey: "security.p1.body" },
+  { icon: "memory", titleKey: "security.p2.title", bodyKey: "security.p2.body" },
+  { icon: "lock", titleKey: "security.p3.title", bodyKey: "security.p3.body" },
+  { icon: "credit_card", titleKey: "security.p4.title", bodyKey: "security.p4.body" },
+  { icon: "verified_user", titleKey: "security.p5.title", bodyKey: "security.p5.body" },
+  { icon: "mail", titleKey: "security.p6.title", bodyKey: "security.p6.body" },
 ]
 
 export function Security() {
@@ -38,8 +39,8 @@ export function Security() {
             transition={{ duration: 0.5, delay: i * 0.06 }}
             className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 text-left transition-colors hover:border-emerald-500/30 hover:bg-white/[0.04]"
           >
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-lg">
-              {p.icon}
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+              <Icon name={p.icon} size={20} />
             </div>
             <h3 className="mb-2 text-base font-bold text-white">{t(p.titleKey)}</h3>
             <p className="text-sm leading-relaxed text-white/50">{t(p.bodyKey)}</p>

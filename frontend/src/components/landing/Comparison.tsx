@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { Typewriter } from "@/components/landing/Typewriter"
 import { useLanguage } from "@/context/LanguageContext"
+import { Icon } from "@/components/ui/icon"
 
 const TYPED_KEYS = ["compare.typed.faster", "compare.typed.smarter", "compare.typed.cited", "compare.typed.effortless"]
 
@@ -51,11 +52,11 @@ export function Comparison() {
           >
             <div className="px-4 py-4 font-semibold text-white sm:px-6">{t(row.labelKey)}</div>
             <div className="flex items-start gap-1.5 px-4 py-4 text-white/40 sm:px-6">
-              <span className="mt-0.5 text-white/25">✕</span>
+              <Icon name="close" size={15} className="mt-0.5 shrink-0 text-white/25" />
               {t(row.manualKey)}
             </div>
             <div className="flex items-start gap-1.5 border-l border-emerald-500/20 bg-emerald-500/[0.03] px-4 py-4 text-white/80 sm:px-6">
-              <span className="mt-0.5 text-emerald-400">✓</span>
+              <Icon name="check" size={15} className="mt-0.5 shrink-0 text-emerald-400" />
               {t(row.aiKey)}
             </div>
           </motion.div>

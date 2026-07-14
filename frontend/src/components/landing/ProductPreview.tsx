@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { Typewriter } from "@/components/landing/Typewriter"
 import { useLanguage } from "@/context/LanguageContext"
+import { Icon } from "@/components/ui/icon"
 
 const TAB_KEYS = [
   "dash.tab.chat",
@@ -69,8 +70,9 @@ export function ProductPreview() {
               <div>
                 <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted">{t("sidebar.documents")}</div>
                 <div className="w-full rounded-lg border border-border py-1.5 text-center text-xs text-text-muted">{t("sidebar.uploadPdfs")}</div>
-                <div className="mt-2 truncate rounded-lg border border-border bg-white/[0.03] px-2.5 py-1.5 text-[11px] text-text-muted">
-                  📄 Final_Year_Project_Proposal.pdf
+                <div className="mt-2 flex items-center gap-1 truncate rounded-lg border border-border bg-white/[0.03] px-2.5 py-1.5 text-[11px] text-text-muted">
+                  <Icon name="picture_as_pdf" size={13} className="shrink-0 text-danger/80" />
+                  <span className="truncate">Final_Year_Project_Proposal.pdf</span>
                 </div>
               </div>
             </div>
@@ -78,7 +80,9 @@ export function ProductPreview() {
             {/* Main panel */}
             <div className="flex-1 p-5">
               <div className="mb-4 flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent/15 text-sm">📄</div>
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent/15 text-accent">
+                  <Icon name="description" size={15} />
+                </div>
                 <p className="text-xs text-text-muted">{t("dash.tagline")}</p>
               </div>
 

@@ -1,16 +1,17 @@
 import { motion } from "framer-motion"
 import { Typewriter } from "@/components/landing/Typewriter"
 import { useLanguage } from "@/context/LanguageContext"
+import { Icon } from "@/components/ui/icon"
 
 const TYPED_KEYS = ["editor.typed.edit", "editor.typed.sign", "editor.typed.redact", "editor.typed.fill", "editor.typed.ocr"]
 
 const TOOLS = [
-  { icon: "✏️", titleKey: "editor.tool1.title", bodyKey: "editor.tool1.body" },
-  { icon: "✍️", titleKey: "editor.tool2.title", bodyKey: "editor.tool2.body" },
-  { icon: "📝", titleKey: "editor.tool3.title", bodyKey: "editor.tool3.body" },
-  { icon: "🔍", titleKey: "editor.tool4.title", bodyKey: "editor.tool4.body" },
-  { icon: "✨", titleKey: "editor.tool5.title", bodyKey: "editor.tool5.body" },
-  { icon: "🛡️", titleKey: "editor.tool6.title", bodyKey: "editor.tool6.body" },
+  { icon: "edit", titleKey: "editor.tool1.title", bodyKey: "editor.tool1.body" },
+  { icon: "draw", titleKey: "editor.tool2.title", bodyKey: "editor.tool2.body" },
+  { icon: "assignment", titleKey: "editor.tool3.title", bodyKey: "editor.tool3.body" },
+  { icon: "document_scanner", titleKey: "editor.tool4.title", bodyKey: "editor.tool4.body" },
+  { icon: "auto_awesome", titleKey: "editor.tool5.title", bodyKey: "editor.tool5.body" },
+  { icon: "shield", titleKey: "editor.tool6.title", bodyKey: "editor.tool6.body" },
 ]
 
 export function EditorSuite() {
@@ -38,8 +39,8 @@ export function EditorSuite() {
             transition={{ duration: 0.5, delay: i * 0.06 }}
             className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 text-left transition-colors hover:border-emerald-500/30 hover:bg-white/[0.04]"
           >
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-lg">
-              {tool.icon}
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+              <Icon name={tool.icon} size={20} />
             </div>
             <h3 className="mb-2 text-base font-bold text-white">{t(tool.titleKey)}</h3>
             <p className="text-sm leading-relaxed text-white/50">{t(tool.bodyKey)}</p>
