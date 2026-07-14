@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { api, getStoredApiKey, setStoredApiKey, type BillingStatus } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
 import { useLanguage } from "@/context/LanguageContext"
+import { useToast } from "@/context/ToastContext"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -18,9 +19,9 @@ interface SidebarProps {
 export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
   const { user, logout } = useAuth()
   const { t } = useLanguage()
+  const { toast } = useToast()
   const navigate = useNavigate()
   const [uploading, setUploading] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
   const [apiKey, setApiKey] = React.useState(() => getStoredApiKey())
   const [showApiKey, setShowApiKey] = React.useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
@@ -33,7 +34,6 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files
     if (!selected || selected.length === 0) return
-    setError(null)
     setUploading(true)
     const formData = new FormData()
     Array.from(selected).forEach((f) => formData.append("files", f))
@@ -42,8 +42,12 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
         headers: { "Content-Type": "multipart/form-data" },
       })
       onFilesChanged(data.files)
+      toast(
+        selected.length === 1 ? `"${selected[0].name}" uploaded.` : `${selected.length} files uploaded.`,
+        "success"
+      )
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Upload failed.")
+      toast(err?.response?.data?.detail || "Upload failed.", "error")
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ""
@@ -59,7 +63,7 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
       const { data } = await api.post("/billing/checkout")
       window.location.href = data.checkout_url
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Couldn't start checkout. Please try again.")
+      toast(err?.response?.data?.detail || "Couldn't start checkout. Please try again.", "error")
       setCheckingOut(false)
     }
   }
@@ -70,7 +74,7 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
       const { data } = await api.post("/billing/portal")
       window.location.href = data.portal_url
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Couldn't open the billing portal.")
+      toast(err?.response?.data?.detail || "Couldn't open the billing portal.", "error")
       setManagingBilling(false)
     }
   }
@@ -186,12 +190,6 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
           <Icon name="upload_file" size={17} />
           {uploading ? t("sidebar.uploading") : t("sidebar.uploadPdfs")}
         </Button>
-        {error && (
-          <p className="mt-2 flex items-center gap-1 text-xs text-danger">
-            <Icon name="error" size={14} />
-            {error}
-          </p>
-        )}
         <ul className="mt-3 flex flex-col gap-1.5">
           {files.map((f) => (
             <li

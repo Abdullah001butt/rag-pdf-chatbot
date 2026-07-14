@@ -1,9 +1,10 @@
 import * as React from "react"
 import { api } from "@/lib/api"
 import { useLanguage } from "@/context/LanguageContext"
+import { useToast } from "@/context/ToastContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { LoadingState } from "@/components/Spinner"
+import { CardListSkeleton } from "@/components/ui/skeleton"
 import { Icon } from "@/components/ui/icon"
 
 interface Rule {
@@ -36,10 +37,10 @@ const ACTION_OPTIONS = [
 
 export function AutomationsPanel() {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [rules, setRules] = React.useState<Rule[]>([])
   const [runs, setRuns] = React.useState<Run[]>([])
   const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState<string | null>(null)
   const [expandedRun, setExpandedRun] = React.useState<number | null>(null)
 
   const [name, setName] = React.useState("")
@@ -54,13 +55,12 @@ export function AutomationsPanel() {
 
   async function loadAll() {
     setLoading(true)
-    setError(null)
     try {
       const [rulesRes, runsRes] = await Promise.all([api.get("/automations"), api.get("/automations/runs")])
       setRules(rulesRes.data.rules || [])
       setRuns(runsRes.data.runs || [])
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Couldn't load automations.")
+      toast(err?.response?.data?.detail || "Couldn't load automations.", "error")
     } finally {
       setLoading(false)
     }
@@ -78,7 +78,6 @@ export function AutomationsPanel() {
   async function handleCreate() {
     if (!name.trim() || selectedActions.size === 0) return
     setCreating(true)
-    setError(null)
     try {
       const { data } = await api.post("/automations", {
         name: name.trim(),
@@ -90,8 +89,9 @@ export function AutomationsPanel() {
       setName("")
       setKeyword("")
       setSelectedActions(new Set(["summary"]))
+      toast(`Automation "${data.name}" created.`, "success")
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Couldn't create the automation.")
+      toast(err?.response?.data?.detail || "Couldn't create the automation.", "error")
     } finally {
       setCreating(false)
     }
@@ -111,8 +111,9 @@ export function AutomationsPanel() {
     try {
       await api.delete(`/automations/${ruleId}`)
       setRules((prev) => prev.filter((r) => r.id !== ruleId))
+      toast("Automation deleted.", "success")
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Couldn't delete the automation.")
+      toast(err?.response?.data?.detail || "Couldn't delete the automation.", "error")
     }
   }
 
@@ -159,8 +160,7 @@ export function AutomationsPanel() {
         </div>
       </div>
 
-      {error && <p className="text-sm text-danger">{error}</p>}
-      {loading && <LoadingState label={t("common.generating")} />}
+      {loading && <CardListSkeleton count={3} />}
 
       {!loading && (
         <>

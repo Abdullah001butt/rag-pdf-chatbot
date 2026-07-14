@@ -17,7 +17,7 @@ import { BatchProcessPanel } from "@/components/BatchProcessPanel"
 import { AgentPanel } from "@/components/AgentPanel"
 import { AutomationsPanel } from "@/components/AutomationsPanel"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
-import { LoadingState } from "@/components/Spinner"
+import { DashboardSkeleton } from "@/components/ui/skeleton"
 import { Icon } from "@/components/ui/icon"
 
 const TABS = [
@@ -175,7 +175,7 @@ export default function Dashboard() {
 
         <div className="scrollbar-thin flex-1 overflow-y-auto p-4 md:p-6">
           {loading ? (
-            <LoadingState label={t("dash.loadingWorkspace")} />
+            <DashboardSkeleton />
           ) : (
             <ErrorBoundary key={tab} fallbackTitle={t("dash.panelError")}>
               {tab === "chat" && <ChatPanel />}
