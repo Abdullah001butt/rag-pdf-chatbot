@@ -56,6 +56,15 @@ interface AddedSignature {
   dataUrl: string
 }
 
+interface VersionInfo {
+  id: number
+  filename: string
+  version_number: number
+  label: string
+  size_bytes: number
+  created_at: string
+}
+
 type PageEntry = { id: string; type: "page"; origIndex: number } | { id: string; type: "blank" }
 
 const DEFAULT_STYLE: TextStyle = { fontSize: 12, bold: false, color: "#000000" }
@@ -125,6 +134,11 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
   const [typedSigText, setTypedSigText] = React.useState("")
   const [placingSignature, setPlacingSignature] = React.useState<{ dataUrl: string; widthPx: number; heightPx: number } | null>(null)
   const [isDrawing, setIsDrawing] = React.useState(false)
+  const [versionsOpen, setVersionsOpen] = React.useState(false)
+  const [versions, setVersions] = React.useState<VersionInfo[]>([])
+  const [versionsLoading, setVersionsLoading] = React.useState(false)
+  const [savingVersion, setSavingVersion] = React.useState(false)
+  const [versionLabel, setVersionLabel] = React.useState("")
 
   const sigCanvasRef = React.useRef<HTMLCanvasElement>(null)
 
@@ -463,13 +477,10 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
     setCurrentPos((p) => p + delta)
   }
 
-  async function handleExport() {
-    if (!pdfBytes) return
-    setExporting(true)
-    setError(null)
-    try {
-      const originalDoc = await PDFDocument.load(pdfBytes)
-      const newDoc = await PDFDocument.create()
+  async function buildExportedPdfBytes(): Promise<Uint8Array> {
+    if (!pdfBytes) throw new Error("No document loaded.")
+    const originalDoc = await PDFDocument.load(pdfBytes)
+    const newDoc = await PDFDocument.create()
       const font = await newDoc.embedFont(StandardFonts.Helvetica)
       const boldFont = await newDoc.embedFont(StandardFonts.HelveticaBold)
 
@@ -550,7 +561,14 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
         })
       }
 
-      const editedBytes = await newDoc.save()
+    return newDoc.save()
+  }
+
+  async function handleExport() {
+    setExporting(true)
+    setError(null)
+    try {
+      const editedBytes = await buildExportedPdfBytes()
       const blob = new Blob([editedBytes as BlobPart], { type: "application/pdf" })
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
@@ -565,6 +583,90 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
     } finally {
       setExporting(false)
     }
+  }
+
+  async function handleSaveVersion() {
+    setSavingVersion(true)
+    setError(null)
+    try {
+      const editedBytes = await buildExportedPdfBytes()
+      const blob = new Blob([editedBytes as BlobPart], { type: "application/pdf" })
+      const formData = new FormData()
+      formData.append("filename", source)
+      formData.append("label", versionLabel)
+      formData.append("file", blob, `${source.replace(/\.[^/.]+$/, "")}_version.pdf`)
+      await api.post("/versions/save", formData, { headers: { "Content-Type": "multipart/form-data" } })
+      setVersionLabel("")
+      if (versionsOpen) await loadVersions()
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || `${t("editorPanel.errExportFailed")} ` + (err?.message || "unknown error"))
+    } finally {
+      setSavingVersion(false)
+    }
+  }
+
+  async function loadVersions() {
+    setVersionsLoading(true)
+    try {
+      const { data } = await api.get("/versions", { params: { filename: source } })
+      setVersions(data.versions || [])
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || "Couldn't load versions.")
+    } finally {
+      setVersionsLoading(false)
+    }
+  }
+
+  function openVersions() {
+    setVersionsOpen(true)
+    loadVersions()
+  }
+
+  async function handleRestoreVersion(versionId: number) {
+    setError(null)
+    try {
+      const { data } = await api.get(`/versions/${versionId}/download`, { responseType: "arraybuffer" })
+      setPdfBytes(data)
+      const doc = await pdfjsLib.getDocument({ data: data.slice(0) }).promise
+      setPdfDoc(doc)
+      setPageOrder(
+        Array.from({ length: doc.numPages }, (_, i) => ({ id: `orig-${i}`, type: "page" as const, origIndex: i }))
+      )
+      setEdits({})
+      setEditStyles({})
+      setAddedTexts([])
+      setAddedSignatures([])
+      setPageTextItems({})
+      setPageSizes({})
+      setCurrentPos(0)
+      setOcrProcessedPages(new Set())
+      setVersionsOpen(false)
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || "Couldn't restore this version.")
+    }
+  }
+
+  async function handleDeleteVersion(versionId: number) {
+    setError(null)
+    try {
+      await api.delete(`/versions/${versionId}`)
+      setVersions((prev) => prev.filter((v) => v.id !== versionId))
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || "Couldn't delete this version.")
+    }
+  }
+
+  async function handleDownloadVersion(versionId: number, label: string, versionNumber: number) {
+    const { data } = await api.get(`/versions/${versionId}/download`, { responseType: "arraybuffer" })
+    const blob = new Blob([data], { type: "application/pdf" })
+    const objUrl = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = objUrl
+    a.download = `${source.replace(/\.[^/.]+$/, "")}_v${versionNumber}${label ? "_" + label.replace(/[^a-z0-9]+/gi, "_") : ""}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(objUrl)
   }
 
   const textItems = currentEntry?.type === "page" ? pageTextItems[currentEntry.origIndex] || [] : []
@@ -631,6 +733,12 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
         </Button>
         <Button onClick={handleExport} disabled={exporting || !pdfDoc || changeCount === 0}>
           {exporting ? t("editorPanel.exporting") : `⬇ ${t("editorPanel.download")} (${changeCount})`}
+        </Button>
+        <Button variant="outline" onClick={handleSaveVersion} disabled={savingVersion || !pdfDoc || changeCount === 0}>
+          {savingVersion ? t("editorPanel.savingVersion") : `💾 ${t("editorPanel.saveVersion")}`}
+        </Button>
+        <Button variant="outline" onClick={openVersions} disabled={!pdfDoc}>
+          📜 {t("editorPanel.versions")}
         </Button>
       </div>
 
@@ -1030,6 +1138,76 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {versionsOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setVersionsOpen(false)}
+        >
+          <div
+            className="flex max-h-[80vh] w-full max-w-lg flex-col rounded-2xl border border-white/10 bg-surface p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="mb-3 text-base font-semibold text-text">{t("editorPanel.versions")}</h3>
+
+            <div className="mb-3 flex gap-2">
+              <input
+                value={versionLabel}
+                onChange={(e) => setVersionLabel(e.target.value)}
+                placeholder={t("editorPanel.versionLabelPlaceholder")}
+                className="flex-1 rounded-lg border border-border bg-white/5 px-3 py-2 text-sm text-text"
+              />
+              <Button onClick={handleSaveVersion} disabled={savingVersion || changeCount === 0}>
+                {savingVersion ? t("editorPanel.savingVersion") : `💾 ${t("editorPanel.saveVersion")}`}
+              </Button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {versionsLoading && <LoadingState label={t("editorPanel.loadingVersions")} />}
+              {!versionsLoading && versions.length === 0 && (
+                <p className="text-sm text-text-muted">{t("editorPanel.noVersions")}</p>
+              )}
+              <div className="flex flex-col gap-2">
+                {versions.map((v) => (
+                  <div key={v.id} className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/3 px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-text">
+                        v{v.version_number} {v.label && `— ${v.label}`}
+                      </p>
+                      <p className="text-xs text-text-muted">
+                        {new Date(v.created_at).toLocaleString()} · {(v.size_bytes / 1024).toFixed(0)} KB
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 gap-1.5">
+                      <button
+                        onClick={() => handleRestoreVersion(v.id)}
+                        title={t("editorPanel.restore")}
+                        className="rounded-md border border-accent/30 bg-accent/10 px-2 py-1 text-xs text-accent"
+                      >
+                        {t("editorPanel.restore")}
+                      </button>
+                      <button
+                        onClick={() => handleDownloadVersion(v.id, v.label, v.version_number)}
+                        title={t("common.download")}
+                        className="rounded-md border border-border px-2 py-1 text-xs text-text-muted"
+                      >
+                        ⬇
+                      </button>
+                      <button
+                        onClick={() => handleDeleteVersion(v.id)}
+                        title={t("editorPanel.deleteThisText")}
+                        className="rounded-md border border-danger/30 bg-danger/10 px-2 py-1 text-xs text-danger"
+                      >
+                        🗑
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}

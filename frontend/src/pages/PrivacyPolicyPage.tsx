@@ -18,7 +18,8 @@ export default function PrivacyPolicyPage() {
             <h2 className="mb-2 text-lg font-bold text-white">What we collect</h2>
             <ul className="list-disc space-y-1.5 pl-5">
               <li>Account info: username, email address, and a bcrypt-hashed password (we never see or store your plain-text password).</li>
-              <li>Uploaded PDFs, held in server memory only for your active session — never written to disk or a database.</li>
+              <li>Uploaded PDFs, held in server memory only for your active session — never written to disk or a database, unless you explicitly save a version from the PDF editor (see below).</li>
+              <li>Document versions you explicitly choose to save from the editor's "Save Version" feature, stored in our database until you delete them.</li>
               <li>Your Google Gemini API key, stored only in your browser's local storage and forwarded directly to Google per-request. We do not store it on our servers.</li>
               <li>Billing information, handled entirely by Stripe — we never receive or store your card details.</li>
               <li>Basic usage data (which actions you take and how often) to enforce plan limits.</li>
@@ -29,7 +30,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="mb-2 text-lg font-bold text-white">What we don't do</h2>
             <ul className="list-disc space-y-1.5 pl-5">
               <li>We don't sell your data to anyone.</li>
-              <li>We don't permanently store your uploaded documents.</li>
+              <li>We don't permanently store your uploaded documents unless you explicitly save a version.</li>
               <li>We don't share your documents or chat history with other users.</li>
               <li>We don't use your documents to train any AI model.</li>
             </ul>
@@ -50,8 +51,10 @@ export default function PrivacyPolicyPage() {
             <p>
               Account data (username, email, hashed password, usage history) is kept until you delete your account
               from Account Settings, at which point it's permanently removed. Uploaded documents are cleared when
-              your session ends or the server restarts — nothing is retained beyond that. Password reset and email
-              verification links expire automatically (1 hour and 24 hours respectively) and are single-use.
+              your session ends or the server restarts — nothing is retained beyond that, except document versions
+              you explicitly save from the editor, which persist until you delete them (we cap this at 20 saved
+              versions per document, automatically dropping the oldest). Password reset and email verification
+              links expire automatically (1 hour and 24 hours respectively) and are single-use.
             </p>
           </section>
 

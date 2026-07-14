@@ -2,7 +2,7 @@ import os
 from datetime import datetime, date
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Date, Boolean, ForeignKey, Text
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Date, Boolean, ForeignKey, Text, LargeBinary
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
 load_dotenv()
@@ -37,6 +37,7 @@ class User(Base):
     usage_events = relationship("UsageEvent", back_populates="user", cascade="all, delete-orphan")
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
     action_tokens = relationship("ActionToken", back_populates="user", cascade="all, delete-orphan")
+    document_versions = relationship("DocumentVersion", back_populates="user", cascade="all, delete-orphan")
 
 
 class ChatMessage(Base):
@@ -92,6 +93,29 @@ class ActionToken(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="action_tokens")
+
+
+class DocumentVersion(Base):
+    """User-opted-in saved snapshots of an edited PDF. Unlike the in-memory
+    per-session document store, these are explicitly saved by the user and
+    persist in the database until deleted.
+    """
+
+    __tablename__ = "document_versions"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    filename = Column(String(255), nullable=False)
+    version_number = Column(Integer, nullable=False)
+    label = Column(String(200), default="")
+    size_bytes = Column(Integer, nullable=False)
+    file_data = Column(LargeBinary, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="document_versions")
+
+
+MAX_VERSIONS_PER_DOCUMENT = 20
 
 
 def init_db():
@@ -189,3 +213,55 @@ def consume_action_token(db_session, token_hash):
     if record:
         record.used = True
         db_session.commit()
+
+
+def save_document_version(db_session, user_id, filename, label, file_bytes):
+    existing = (
+        db_session.query(DocumentVersion)
+        .filter(DocumentVersion.user_id == user_id, DocumentVersion.filename == filename)
+        .order_by(DocumentVersion.version_number)
+        .all()
+    )
+    if len(existing) >= MAX_VERSIONS_PER_DOCUMENT:
+        oldest = existing[0]
+        db_session.delete(oldest)
+        db_session.flush()
+    next_number = (existing[-1].version_number + 1) if existing else 1
+    record = DocumentVersion(
+        user_id=user_id,
+        filename=filename,
+        version_number=next_number,
+        label=label or "",
+        size_bytes=len(file_bytes),
+        file_data=file_bytes,
+    )
+    db_session.add(record)
+    db_session.commit()
+    db_session.refresh(record)
+    return record
+
+
+def list_document_versions(db_session, user_id, filename):
+    return (
+        db_session.query(DocumentVersion)
+        .filter(DocumentVersion.user_id == user_id, DocumentVersion.filename == filename)
+        .order_by(DocumentVersion.version_number.desc())
+        .all()
+    )
+
+
+def get_document_version(db_session, user_id, version_id):
+    return (
+        db_session.query(DocumentVersion)
+        .filter(DocumentVersion.id == version_id, DocumentVersion.user_id == user_id)
+        .first()
+    )
+
+
+def delete_document_version(db_session, user_id, version_id):
+    record = get_document_version(db_session, user_id, version_id)
+    if record:
+        db_session.delete(record)
+        db_session.commit()
+        return True
+    return False
