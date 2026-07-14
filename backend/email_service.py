@@ -4,6 +4,7 @@ If RESEND_API_KEY isn't configured, sends are skipped with a logged warning
 instead of raising — so local development works without an email provider,
 and the token itself is still logged so the flow can be tested end-to-end.
 """
+import html
 import logging
 
 import resend
@@ -55,6 +56,25 @@ def send_password_reset_email(to: str, username: str, token: str):
             <p>Hi {username}, we received a request to reset your Documind AI password.</p>
             <p><a href="{link}" style="background:#10b981;color:#000;padding:12px 24px;border-radius:999px;text-decoration:none;font-weight:bold;">Reset Password</a></p>
             <p style="color:#888;font-size:12px;">This link expires in 1 hour. If you didn't request this, you can safely ignore this email.</p>
+        </div>
+        """,
+    )
+
+
+def send_automation_result_email(to: str, username: str, rule_name: str, filename: str, summary_text: str):
+    link = f"{FRONTEND_URL}/dashboard"
+    safe_rule_name = html.escape(rule_name)
+    safe_filename = html.escape(filename)
+    safe_summary = html.escape(summary_text[:4000])
+    _send(
+        to,
+        f'Your automation "{rule_name}" finished — {filename}',
+        f"""
+        <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
+            <h2>Automation complete</h2>
+            <p>Hi {html.escape(username)}, your automation <strong>{safe_rule_name}</strong> just ran on <strong>{safe_filename}</strong>.</p>
+            <div style="border:1px solid #eee;border-radius:12px;padding:16px;margin:16px 0;white-space:pre-wrap;font-size:13px;color:#333;">{safe_summary}</div>
+            <p><a href="{link}" style="background:#10b981;color:#000;padding:12px 24px;border-radius:999px;text-decoration:none;font-weight:bold;">Open Documind AI</a></p>
         </div>
         """,
     )

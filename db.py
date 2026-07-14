@@ -38,6 +38,7 @@ class User(Base):
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
     action_tokens = relationship("ActionToken", back_populates="user", cascade="all, delete-orphan")
     document_versions = relationship("DocumentVersion", back_populates="user", cascade="all, delete-orphan")
+    automation_rules = relationship("AutomationRule", back_populates="user", cascade="all, delete-orphan")
 
 
 class ChatMessage(Base):
@@ -116,6 +117,45 @@ class DocumentVersion(Base):
 
 
 MAX_VERSIONS_PER_DOCUMENT = 20
+
+
+class AutomationRule(Base):
+    """A user-defined 'when I upload a PDF, automatically do X' rule."""
+
+    __tablename__ = "automation_rules"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String(200), nullable=False)
+    match_keyword = Column(String(200), default="")
+    actions = Column(String(200), nullable=False)  # comma-separated: summary,notes,quiz,flashcards
+    deliver_email = Column(Boolean, default=True, nullable=False)
+    enabled = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="automation_rules")
+    runs = relationship("AutomationRun", back_populates="rule", cascade="all, delete-orphan")
+
+
+class AutomationRun(Base):
+    """A single execution record of an automation rule against an uploaded file."""
+
+    __tablename__ = "automation_runs"
+
+    id = Column(Integer, primary_key=True)
+    rule_id = Column(Integer, ForeignKey("automation_rules.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    rule_name = Column(String(200), nullable=False)
+    filename = Column(String(255), nullable=False)
+    status = Column(String(20), nullable=False)  # "success" | "error" | "skipped"
+    result_text = Column(Text, default="")
+    error_message = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    rule = relationship("AutomationRule", back_populates="runs")
+
+
+MAX_AUTOMATION_RUNS_PER_USER = 100
 
 
 def init_db():
@@ -265,3 +305,90 @@ def delete_document_version(db_session, user_id, version_id):
         db_session.commit()
         return True
     return False
+
+
+def create_automation_rule(db_session, user_id, name, match_keyword, actions, deliver_email):
+    rule = AutomationRule(
+        user_id=user_id,
+        name=name,
+        match_keyword=match_keyword or "",
+        actions=actions,
+        deliver_email=deliver_email,
+    )
+    db_session.add(rule)
+    db_session.commit()
+    db_session.refresh(rule)
+    return rule
+
+
+def list_automation_rules(db_session, user_id):
+    return (
+        db_session.query(AutomationRule)
+        .filter(AutomationRule.user_id == user_id)
+        .order_by(AutomationRule.created_at.desc())
+        .all()
+    )
+
+
+def get_automation_rule(db_session, user_id, rule_id):
+    return (
+        db_session.query(AutomationRule)
+        .filter(AutomationRule.id == rule_id, AutomationRule.user_id == user_id)
+        .first()
+    )
+
+
+def set_automation_rule_enabled(db_session, user_id, rule_id, enabled):
+    rule = get_automation_rule(db_session, user_id, rule_id)
+    if rule:
+        rule.enabled = enabled
+        db_session.commit()
+        return True
+    return False
+
+
+def delete_automation_rule(db_session, user_id, rule_id):
+    rule = get_automation_rule(db_session, user_id, rule_id)
+    if rule:
+        db_session.delete(rule)
+        db_session.commit()
+        return True
+    return False
+
+
+def record_automation_run(db_session, rule_id, user_id, rule_name, filename, status, result_text="", error_message=""):
+    run = AutomationRun(
+        rule_id=rule_id,
+        user_id=user_id,
+        rule_name=rule_name,
+        filename=filename,
+        status=status,
+        result_text=result_text,
+        error_message=error_message,
+    )
+    db_session.add(run)
+    db_session.flush()
+
+    total = db_session.query(AutomationRun).filter(AutomationRun.user_id == user_id).count()
+    if total > MAX_AUTOMATION_RUNS_PER_USER:
+        oldest = (
+            db_session.query(AutomationRun)
+            .filter(AutomationRun.user_id == user_id)
+            .order_by(AutomationRun.created_at)
+            .first()
+        )
+        if oldest:
+            db_session.delete(oldest)
+
+    db_session.commit()
+    return run
+
+
+def list_automation_runs(db_session, user_id, limit=50):
+    return (
+        db_session.query(AutomationRun)
+        .filter(AutomationRun.user_id == user_id)
+        .order_by(AutomationRun.created_at.desc())
+        .limit(limit)
+        .all()
+    )

@@ -1,12 +1,16 @@
+import logging
+
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Response
 
 import rag_core
+from automation_engine import run_automations_for_upload
 from billing import check_pdf_limit
-from deps import get_current_user, get_user_api_key
+from deps import get_current_user, get_user_api_key, get_db
 from rag_pipeline import resolve_api_key
 from store import get_user_store, reset_user_store
 
 router = APIRouter(prefix="/documents", tags=["documents"])
+logger = logging.getLogger("documind.documents")
 
 
 @router.get("")
@@ -46,21 +50,36 @@ def ocr_page_boxes(
 
 
 @router.post("/upload")
-async def upload_documents(files: list[UploadFile] = File(...), user=Depends(get_current_user)):
+async def upload_documents(
+    files: list[UploadFile] = File(...),
+    user=Depends(get_current_user),
+    db=Depends(get_db),
+    user_api_key: str | None = Depends(get_user_api_key),
+):
     store = get_user_store(user.id)
     incoming_count = len(store["files"]) + len(files)
     allowed, reason = check_pdf_limit(user.tier, incoming_count)
     if not allowed:
         raise HTTPException(status_code=403, detail=reason)
 
+    uploaded_names = []
     for f in files:
         content = await f.read()
         store["files"][f.filename] = content
+        uploaded_names.append(f.filename)
 
     # Invalidate cached vector store/pages so the next question re-embeds with new files
     store["pages"] = None
     store["vector_store"] = None
     store["signature"] = None
+
+    api_key = resolve_api_key(user_api_key)
+    for filename in uploaded_names:
+        try:
+            run_automations_for_upload(db, user, api_key, filename)
+        except Exception as e:
+            # Automations must never block the upload response.
+            logger.error(f"Automation execution failed for user {user.id} on {filename!r}: {e}")
 
     return {"files": list(store["files"].keys())}
 

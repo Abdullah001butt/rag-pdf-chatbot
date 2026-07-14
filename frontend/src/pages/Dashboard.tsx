@@ -15,6 +15,7 @@ import { PdfEditorPanel } from "@/components/PdfEditorPanel"
 import { PdfFormFillerPanel } from "@/components/PdfFormFillerPanel"
 import { BatchProcessPanel } from "@/components/BatchProcessPanel"
 import { AgentPanel } from "@/components/AgentPanel"
+import { AutomationsPanel } from "@/components/AutomationsPanel"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { LoadingState } from "@/components/Spinner"
 
@@ -30,6 +31,7 @@ const TABS = [
   { key: "formfiller", icon: "📝", labelKey: "dash.tab.formfiller" },
   { key: "batch", icon: "⚡", labelKey: "dash.tab.batch" },
   { key: "agent", icon: "🤖", labelKey: "dash.tab.agent" },
+  { key: "automations", icon: "🔁", labelKey: "dash.tab.automations" },
 ] as const
 
 type TabKey = (typeof TABS)[number]["key"]
@@ -183,6 +185,7 @@ export default function Dashboard() {
               {tab === "formfiller" && <PdfFormFillerPanel files={files} />}
               {tab === "batch" && <BatchProcessPanel files={files} />}
               {tab === "agent" && <AgentPanel files={files} />}
+              {tab === "automations" && <AutomationsPanel />}
             </ErrorBoundary>
           )}
         </div>
