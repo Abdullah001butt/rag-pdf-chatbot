@@ -6,6 +6,7 @@ import { api } from "@/lib/api"
 import { useLanguage } from "@/context/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
+import { Icon } from "@/components/ui/icon"
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl
 
@@ -423,7 +424,7 @@ export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
                       position: "absolute",
                       right: -20,
                       top: 0,
-                      fontSize: 10,
+                      display: "flex",
                       background: "#ef4444",
                       color: "white",
                       border: "none",
@@ -432,7 +433,7 @@ export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
                       cursor: "pointer",
                     }}
                   >
-                    🗑
+                    <Icon name="delete" size={10} />
                   </button>
                 </div>
               ))}

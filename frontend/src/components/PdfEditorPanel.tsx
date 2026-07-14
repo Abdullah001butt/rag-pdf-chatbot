@@ -6,6 +6,7 @@ import { api } from "@/lib/api"
 import { useLanguage } from "@/context/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
+import { Icon } from "@/components/ui/icon"
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl
 
@@ -711,10 +712,24 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
           onClick={() => setAddingText((a) => !a)}
           disabled={loading || !pdfDoc}
         >
-          {addingText ? t("editorPanel.clickPlaceText") : `➕ ${t("editorPanel.addText")}`}
+          {addingText ? (
+            t("editorPanel.clickPlaceText")
+          ) : (
+            <>
+              <Icon name="add" size={17} />
+              {t("editorPanel.addText")}
+            </>
+          )}
         </Button>
         <Button variant="outline" onClick={handleAutoRedactPII} disabled={loading || !pdfDoc || redacting} title={t("editorPanel.autoRedactTooltip")}>
-          {redacting ? t("editorPanel.scanning") : `🔍 ${t("editorPanel.redactPii")}`}
+          {redacting ? (
+            t("editorPanel.scanning")
+          ) : (
+            <>
+              <Icon name="visibility_off" size={17} />
+              {t("editorPanel.redactPii")}
+            </>
+          )}
         </Button>
         <Button
           variant={placingSignature ? "default" : "outline"}
@@ -729,16 +744,38 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
           }}
           disabled={loading || !pdfDoc}
         >
-          {placingSignature ? t("editorPanel.clickPlaceSignature") : `✍️ ${t("editorPanel.addSignature")}`}
+          {placingSignature ? (
+            t("editorPanel.clickPlaceSignature")
+          ) : (
+            <>
+              <Icon name="draw" size={17} />
+              {t("editorPanel.addSignature")}
+            </>
+          )}
         </Button>
         <Button onClick={handleExport} disabled={exporting || !pdfDoc || changeCount === 0}>
-          {exporting ? t("editorPanel.exporting") : `⬇ ${t("editorPanel.download")} (${changeCount})`}
+          {exporting ? (
+            t("editorPanel.exporting")
+          ) : (
+            <>
+              <Icon name="download" size={17} />
+              {t("editorPanel.download")} ({changeCount})
+            </>
+          )}
         </Button>
         <Button variant="outline" onClick={handleSaveVersion} disabled={savingVersion || !pdfDoc || changeCount === 0}>
-          {savingVersion ? t("editorPanel.savingVersion") : `💾 ${t("editorPanel.saveVersion")}`}
+          {savingVersion ? (
+            t("editorPanel.savingVersion")
+          ) : (
+            <>
+              <Icon name="save" size={17} />
+              {t("editorPanel.saveVersion")}
+            </>
+          )}
         </Button>
         <Button variant="outline" onClick={openVersions} disabled={!pdfDoc}>
-          📜 {t("editorPanel.versions")}
+          <Icon name="history" size={17} />
+          {t("editorPanel.versions")}
         </Button>
       </div>
 
@@ -891,9 +928,9 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                           e.stopPropagation()
                           deleteSignature(sig.id)
                         }}
-                        style={{ fontSize: 11, background: "#ef4444", color: "white", border: "none", borderRadius: 4, padding: "1px 5px", cursor: "pointer" }}
+                        style={{ display: "flex", background: "#ef4444", color: "white", border: "none", borderRadius: 4, padding: "1px 5px", cursor: "pointer" }}
                       >
-                        🗑
+                        <Icon name="delete" size={11} />
                       </button>
                     </div>
                   )}
@@ -1161,7 +1198,14 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                 className="flex-1 rounded-lg border border-border bg-white/5 px-3 py-2 text-sm text-text"
               />
               <Button onClick={handleSaveVersion} disabled={savingVersion || changeCount === 0}>
-                {savingVersion ? t("editorPanel.savingVersion") : `💾 ${t("editorPanel.saveVersion")}`}
+                {savingVersion ? (
+                  t("editorPanel.savingVersion")
+                ) : (
+                  <>
+                    <Icon name="save" size={17} />
+                    {t("editorPanel.saveVersion")}
+                  </>
+                )}
               </Button>
             </div>
 
@@ -1192,16 +1236,16 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                       <button
                         onClick={() => handleDownloadVersion(v.id, v.label, v.version_number)}
                         title={t("common.download")}
-                        className="rounded-md border border-border px-2 py-1 text-xs text-text-muted"
+                        className="rounded-md border border-border px-2 py-1 text-text-muted"
                       >
-                        ⬇
+                        <Icon name="download" size={14} />
                       </button>
                       <button
                         onClick={() => handleDeleteVersion(v.id)}
                         title={t("editorPanel.deleteThisText")}
-                        className="rounded-md border border-danger/30 bg-danger/10 px-2 py-1 text-xs text-danger"
+                        className="rounded-md border border-danger/30 bg-danger/10 px-2 py-1 text-danger"
                       >
-                        🗑
+                        <Icon name="delete" size={14} />
                       </button>
                     </div>
                   </div>

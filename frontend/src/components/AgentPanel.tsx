@@ -3,6 +3,7 @@ import { api, type QuizQuestion, type Flashcard } from "@/lib/api"
 import { useLanguage } from "@/context/LanguageContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
+import { Icon } from "@/components/ui/icon"
 import { downloadFile } from "@/lib/export"
 
 interface AgentPanelProps {
@@ -142,7 +143,14 @@ export function AgentPanel({ files }: AgentPanelProps) {
           className="flex-1 resize-none rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text disabled:opacity-50"
         />
         <Button onClick={handlePlanAndRun} disabled={planning || running || !goal.trim()} className="shrink-0">
-          {planning ? t("agentPanel.planning") : running ? t("agentPanel.running") : `🤖 ${t("agentPanel.run")}`}
+          {planning || running ? (
+            planning ? t("agentPanel.planning") : t("agentPanel.running")
+          ) : (
+            <>
+              <Icon name="smart_toy" size={17} />
+              {t("agentPanel.run")}
+            </>
+          )}
         </Button>
       </div>
 
