@@ -17,6 +17,7 @@ import { BatchProcessPanel } from "@/components/BatchProcessPanel"
 import { AgentPanel } from "@/components/AgentPanel"
 import { AutomationsPanel } from "@/components/AutomationsPanel"
 import { WorkspacesPanel } from "@/components/WorkspacesPanel"
+import { AnalyticsPanel } from "@/components/AnalyticsPanel"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { DashboardSkeleton } from "@/components/ui/skeleton"
 import { Icon } from "@/components/ui/icon"
@@ -35,6 +36,7 @@ const TABS = [
   { key: "agent", icon: "smart_toy", labelKey: "dash.tab.agent" },
   { key: "automations", icon: "cycle", labelKey: "dash.tab.automations", descKey: "automations.description" },
   { key: "workspaces", icon: "groups", labelKey: "dash.tab.workspaces", descKey: "workspaces.description" },
+  { key: "analytics", icon: "monitoring", labelKey: "dash.tab.analytics", descKey: "analytics.description" },
 ] as const
 
 type TabKey = (typeof TABS)[number]["key"]
@@ -213,6 +215,7 @@ export default function Dashboard() {
               {tab === "agent" && <AgentPanel files={files} />}
               {tab === "automations" && <AutomationsPanel />}
               {tab === "workspaces" && <WorkspacesPanel />}
+              {tab === "analytics" && <AnalyticsPanel />}
             </ErrorBoundary>
           )}
         </div>
