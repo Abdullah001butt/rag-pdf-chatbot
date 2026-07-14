@@ -273,6 +273,7 @@ const en: Dict = {
   "dash.tab.batch": "Batch",
   "dash.tab.agent": "Agent",
   "dash.tab.automations": "Automations",
+  "dash.tab.workspaces": "Workspaces",
   "dash.tagline": "Ask questions across multiple documents, powered by Gemini & retrieval-augmented search",
   "dash.verifyEmail": "⚠ Please verify your email address.",
   "dash.verifyNow": "Verify now",
@@ -503,6 +504,20 @@ const en: Dict = {
   "automations.statusSuccess": "Success",
   "automations.statusError": "Error",
   "automations.statusSkipped": "Skipped",
+
+  "workspaces.title": "Workspaces",
+  "workspaces.description": "Shared documents your whole team can see and work with together.",
+  "workspaces.lockedTitle": "Workspaces are a Pro feature",
+  "workspaces.lockedBody": "Upgrade to Pro to create shared team workspaces where documents are stored securely and everyone on your team can access them.",
+  "workspaces.namePlaceholder": "Workspace name",
+  "workspaces.none": "No workspaces yet — create one to get started.",
+  "workspaces.selectPrompt": "Select a workspace to see its members and documents.",
+  "workspaces.deleteWorkspace": "Delete",
+  "workspaces.members": "Members",
+  "workspaces.inviteUsernamePlaceholder": "Username to invite",
+  "workspaces.invite": "Invite",
+  "workspaces.documents": "Shared documents",
+  "workspaces.noDocuments": "No documents shared here yet.",
 }
 
 const fr: Dict = {
@@ -753,6 +768,7 @@ const fr: Dict = {
   "dash.tab.batch": "Lot",
   "dash.tab.agent": "Agent",
   "dash.tab.automations": "Automatisations",
+  "dash.tab.workspaces": "Espaces de travail",
   "dash.tagline": "Posez des questions sur plusieurs documents, propulsé par Gemini et la recherche augmentée",
   "dash.verifyEmail": "⚠ Veuillez vérifier votre adresse e-mail.",
   "dash.verifyNow": "Vérifier maintenant",
@@ -981,6 +997,20 @@ const fr: Dict = {
   "automations.statusSuccess": "Réussi",
   "automations.statusError": "Erreur",
   "automations.statusSkipped": "Ignoré",
+
+  "workspaces.title": "Espaces de travail",
+  "workspaces.description": "Documents partagés que toute votre équipe peut voir et utiliser ensemble.",
+  "workspaces.lockedTitle": "Les espaces de travail sont une fonctionnalité Pro",
+  "workspaces.lockedBody": "Passez à Pro pour créer des espaces de travail d'équipe partagés où les documents sont stockés en toute sécurité et accessibles à toute votre équipe.",
+  "workspaces.namePlaceholder": "Nom de l'espace de travail",
+  "workspaces.none": "Aucun espace de travail pour le moment — créez-en un pour commencer.",
+  "workspaces.selectPrompt": "Sélectionnez un espace de travail pour voir ses membres et documents.",
+  "workspaces.deleteWorkspace": "Supprimer",
+  "workspaces.members": "Membres",
+  "workspaces.inviteUsernamePlaceholder": "Nom d'utilisateur à inviter",
+  "workspaces.invite": "Inviter",
+  "workspaces.documents": "Documents partagés",
+  "workspaces.noDocuments": "Aucun document partagé pour le moment.",
 }
 
 const ar: Dict = {
@@ -1231,6 +1261,7 @@ const ar: Dict = {
   "dash.tab.batch": "دفعة",
   "dash.tab.agent": "الوكيل",
   "dash.tab.automations": "الأتمتة",
+  "dash.tab.workspaces": "مساحات العمل",
   "dash.tagline": "اطرح أسئلة عبر مستندات متعددة، مدعوم بواسطة Gemile والبحث المعزز بالاسترجاع",
   "dash.verifyEmail": "⚠ يُرجى التحقق من عنوان بريدك الإلكتروني.",
   "dash.verifyNow": "تحقق الآن",
@@ -1459,6 +1490,20 @@ const ar: Dict = {
   "automations.statusSuccess": "نجاح",
   "automations.statusError": "خطأ",
   "automations.statusSkipped": "تم التخطي",
+
+  "workspaces.title": "مساحات العمل",
+  "workspaces.description": "مستندات مشتركة يمكن لفريقك بأكمله رؤيتها والعمل عليها معًا.",
+  "workspaces.lockedTitle": "مساحات العمل ميزة Pro",
+  "workspaces.lockedBody": "قم بالترقية إلى Pro لإنشاء مساحات عمل جماعية مشتركة يتم فيها تخزين المستندات بأمان ويمكن لفريقك بأكمله الوصول إليها.",
+  "workspaces.namePlaceholder": "اسم مساحة العمل",
+  "workspaces.none": "لا توجد مساحات عمل بعد — أنشئ واحدة للبدء.",
+  "workspaces.selectPrompt": "اختر مساحة عمل لعرض أعضائها ومستنداتها.",
+  "workspaces.deleteWorkspace": "حذف",
+  "workspaces.members": "الأعضاء",
+  "workspaces.inviteUsernamePlaceholder": "اسم المستخدم للدعوة",
+  "workspaces.invite": "دعوة",
+  "workspaces.documents": "المستندات المشتركة",
+  "workspaces.noDocuments": "لا توجد مستندات مشتركة هنا بعد.",
 }
 
 const ru: Dict = {
@@ -1709,6 +1754,7 @@ const ru: Dict = {
   "dash.tab.batch": "Пакет",
   "dash.tab.agent": "Агент",
   "dash.tab.automations": "Автоматизации",
+  "dash.tab.workspaces": "Рабочие пространства",
   "dash.tagline": "Задавайте вопросы по нескольким документам на основе Gemini и поиска с дополнением",
   "dash.verifyEmail": "⚠ Пожалуйста, подтвердите ваш email.",
   "dash.verifyNow": "Подтвердить",
@@ -1937,6 +1983,20 @@ const ru: Dict = {
   "automations.statusSuccess": "Успешно",
   "automations.statusError": "Ошибка",
   "automations.statusSkipped": "Пропущено",
+
+  "workspaces.title": "Рабочие пространства",
+  "workspaces.description": "Общие документы, которые видит и с которыми работает вся ваша команда.",
+  "workspaces.lockedTitle": "Рабочие пространства — функция Pro",
+  "workspaces.lockedBody": "Перейдите на Pro, чтобы создавать общие командные рабочие пространства, где документы надёжно хранятся и доступны всей команде.",
+  "workspaces.namePlaceholder": "Название рабочего пространства",
+  "workspaces.none": "Пока нет рабочих пространств — создайте одно, чтобы начать.",
+  "workspaces.selectPrompt": "Выберите рабочее пространство, чтобы увидеть его участников и документы.",
+  "workspaces.deleteWorkspace": "Удалить",
+  "workspaces.members": "Участники",
+  "workspaces.inviteUsernamePlaceholder": "Имя пользователя для приглашения",
+  "workspaces.invite": "Пригласить",
+  "workspaces.documents": "Общие документы",
+  "workspaces.noDocuments": "Здесь пока нет общих документов.",
 }
 
 export const translations: Record<Lang, Dict> = { en, fr, ar, ru }

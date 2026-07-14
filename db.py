@@ -39,6 +39,8 @@ class User(Base):
     action_tokens = relationship("ActionToken", back_populates="user", cascade="all, delete-orphan")
     document_versions = relationship("DocumentVersion", back_populates="user", cascade="all, delete-orphan")
     automation_rules = relationship("AutomationRule", back_populates="user", cascade="all, delete-orphan")
+    owned_workspaces = relationship("Workspace", back_populates="owner", cascade="all, delete-orphan")
+    workspace_memberships = relationship("WorkspaceMember", back_populates="user", cascade="all, delete-orphan")
 
 
 class ChatMessage(Base):
@@ -156,6 +158,56 @@ class AutomationRun(Base):
 
 
 MAX_AUTOMATION_RUNS_PER_USER = 100
+
+
+class Workspace(Base):
+    """A Pro-tier shared team workspace. Documents uploaded here are stored
+    in the database (unlike the personal in-memory-only store) so every
+    member can access them.
+    """
+
+    __tablename__ = "workspaces"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(200), nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    owner = relationship("User", back_populates="owned_workspaces")
+    members = relationship("WorkspaceMember", back_populates="workspace", cascade="all, delete-orphan")
+    documents = relationship("WorkspaceDocument", back_populates="workspace", cascade="all, delete-orphan")
+
+
+class WorkspaceMember(Base):
+    __tablename__ = "workspace_members"
+
+    id = Column(Integer, primary_key=True)
+    workspace_id = Column(Integer, ForeignKey("workspaces.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    role = Column(String(10), nullable=False, default="member")  # "owner" | "member"
+    joined_at = Column(DateTime, default=datetime.utcnow)
+
+    workspace = relationship("Workspace", back_populates="members")
+    user = relationship("User", back_populates="workspace_memberships")
+
+
+class WorkspaceDocument(Base):
+    __tablename__ = "workspace_documents"
+
+    id = Column(Integer, primary_key=True)
+    workspace_id = Column(Integer, ForeignKey("workspaces.id"), nullable=False)
+    uploaded_by_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    filename = Column(String(255), nullable=False)
+    size_bytes = Column(Integer, nullable=False)
+    file_data = Column(LargeBinary, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    workspace = relationship("Workspace", back_populates="documents")
+    uploaded_by = relationship("User")
+
+
+MAX_WORKSPACE_MEMBERS = 20
+MAX_WORKSPACE_DOCUMENTS = 100
 
 
 def init_db():
@@ -392,3 +444,126 @@ def list_automation_runs(db_session, user_id, limit=50):
         .limit(limit)
         .all()
     )
+
+
+def create_workspace(db_session, owner_id, name):
+    workspace = Workspace(name=name, owner_id=owner_id)
+    db_session.add(workspace)
+    db_session.flush()
+    db_session.add(WorkspaceMember(workspace_id=workspace.id, user_id=owner_id, role="owner"))
+    db_session.commit()
+    db_session.refresh(workspace)
+    return workspace
+
+
+def list_user_workspaces(db_session, user_id):
+    return (
+        db_session.query(Workspace)
+        .join(WorkspaceMember, WorkspaceMember.workspace_id == Workspace.id)
+        .filter(WorkspaceMember.user_id == user_id)
+        .order_by(Workspace.created_at.desc())
+        .all()
+    )
+
+
+def get_workspace(db_session, workspace_id):
+    return db_session.query(Workspace).filter(Workspace.id == workspace_id).first()
+
+
+def get_workspace_member(db_session, workspace_id, user_id):
+    return (
+        db_session.query(WorkspaceMember)
+        .filter(WorkspaceMember.workspace_id == workspace_id, WorkspaceMember.user_id == user_id)
+        .first()
+    )
+
+
+def list_workspace_members(db_session, workspace_id):
+    return (
+        db_session.query(WorkspaceMember)
+        .filter(WorkspaceMember.workspace_id == workspace_id)
+        .order_by(WorkspaceMember.joined_at)
+        .all()
+    )
+
+
+def add_workspace_member(db_session, workspace_id, user_id):
+    existing = get_workspace_member(db_session, workspace_id, user_id)
+    if existing:
+        return existing
+    member = WorkspaceMember(workspace_id=workspace_id, user_id=user_id, role="member")
+    db_session.add(member)
+    db_session.commit()
+    db_session.refresh(member)
+    return member
+
+
+def remove_workspace_member(db_session, workspace_id, user_id):
+    member = get_workspace_member(db_session, workspace_id, user_id)
+    if member:
+        db_session.delete(member)
+        db_session.commit()
+        return True
+    return False
+
+
+def delete_workspace(db_session, workspace_id):
+    workspace = get_workspace(db_session, workspace_id)
+    if workspace:
+        db_session.delete(workspace)
+        db_session.commit()
+        return True
+    return False
+
+
+def save_workspace_document(db_session, workspace_id, uploaded_by_id, filename, file_bytes):
+    existing_count = (
+        db_session.query(WorkspaceDocument).filter(WorkspaceDocument.workspace_id == workspace_id).count()
+    )
+    if existing_count >= MAX_WORKSPACE_DOCUMENTS:
+        oldest = (
+            db_session.query(WorkspaceDocument)
+            .filter(WorkspaceDocument.workspace_id == workspace_id)
+            .order_by(WorkspaceDocument.created_at)
+            .first()
+        )
+        if oldest:
+            db_session.delete(oldest)
+            db_session.flush()
+    doc = WorkspaceDocument(
+        workspace_id=workspace_id,
+        uploaded_by_id=uploaded_by_id,
+        filename=filename,
+        size_bytes=len(file_bytes),
+        file_data=file_bytes,
+    )
+    db_session.add(doc)
+    db_session.commit()
+    db_session.refresh(doc)
+    return doc
+
+
+def list_workspace_documents(db_session, workspace_id):
+    return (
+        db_session.query(WorkspaceDocument)
+        .filter(WorkspaceDocument.workspace_id == workspace_id)
+        .order_by(WorkspaceDocument.created_at.desc())
+        .all()
+    )
+
+
+def get_workspace_document(db_session, workspace_id, document_id):
+    return (
+        db_session.query(WorkspaceDocument)
+        .filter(WorkspaceDocument.id == document_id, WorkspaceDocument.workspace_id == workspace_id)
+        .first()
+    )
+
+
+def delete_workspace_document(db_session, workspace_id, document_id):
+    doc = get_workspace_document(db_session, workspace_id, document_id)
+    if doc:
+        db_session.delete(doc)
+        db_session.commit()
+        return True
+    return False
