@@ -6,6 +6,15 @@ import { Card, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Icon } from "@/components/ui/icon"
+
+interface ApiKeyInfo {
+  id: number
+  name: string
+  key_prefix: string
+  created_at: string
+  last_used_at: string | null
+}
 
 export default function AccountSettingsPage() {
   const { user, logout, updateUser } = useAuth()
@@ -30,6 +39,55 @@ export default function AccountSettingsPage() {
   const [deleteErr, setDeleteErr] = React.useState<string | null>(null)
   const [deleteBusy, setDeleteBusy] = React.useState(false)
   const [confirmingDelete, setConfirmingDelete] = React.useState(false)
+
+  const isPro = user?.tier === "pro"
+  const [apiKeys, setApiKeys] = React.useState<ApiKeyInfo[]>([])
+  const [apiKeysLoading, setApiKeysLoading] = React.useState(false)
+  const [newKeyName, setNewKeyName] = React.useState("")
+  const [creatingKey, setCreatingKey] = React.useState(false)
+  const [apiKeyErr, setApiKeyErr] = React.useState<string | null>(null)
+  const [justCreatedKey, setJustCreatedKey] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    if (isPro) loadApiKeys()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPro])
+
+  async function loadApiKeys() {
+    setApiKeysLoading(true)
+    try {
+      const { data } = await api.get("/api-keys")
+      setApiKeys(data.keys || [])
+    } catch {
+      // silent — section just stays empty
+    } finally {
+      setApiKeysLoading(false)
+    }
+  }
+
+  async function handleCreateApiKey() {
+    setCreatingKey(true)
+    setApiKeyErr(null)
+    try {
+      const { data } = await api.post("/api-keys", { name: newKeyName.trim() })
+      setJustCreatedKey(data.key)
+      setNewKeyName("")
+      loadApiKeys()
+    } catch (err: any) {
+      setApiKeyErr(err?.response?.data?.detail || "Couldn't create the API key.")
+    } finally {
+      setCreatingKey(false)
+    }
+  }
+
+  async function handleRevokeApiKey(id: number) {
+    try {
+      await api.delete(`/api-keys/${id}`)
+      setApiKeys((prev) => prev.filter((k) => k.id !== id))
+    } catch (err: any) {
+      setApiKeyErr(err?.response?.data?.detail || "Couldn't revoke that key.")
+    }
+  }
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault()
@@ -191,6 +249,85 @@ export default function AccountSettingsPage() {
             {emailBusy ? "Updating..." : "Update Email"}
           </Button>
         </form>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-text">API Keys</h2>
+            {!isPro && <Badge variant="warning">Pro feature</Badge>}
+          </div>
+        </CardHeader>
+
+        {!isPro ? (
+          <p className="text-sm text-text-muted">
+            Upgrade to Pro to generate personal access keys and call the Documind AI public API (/v1) from your own scripts and apps.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-text-muted">
+              Use a key with the <code className="rounded bg-white/10 px-1 py-0.5 text-xs">X-Api-Key</code> header to call{" "}
+              <code className="rounded bg-white/10 px-1 py-0.5 text-xs">/v1/documents/upload</code>,{" "}
+              <code className="rounded bg-white/10 px-1 py-0.5 text-xs">/v1/chat/ask</code>, and{" "}
+              <code className="rounded bg-white/10 px-1 py-0.5 text-xs">/v1/generate/*</code>.
+            </p>
+
+            {justCreatedKey && (
+              <div className="flex flex-col gap-2 rounded-xl border border-accent/30 bg-accent/10 p-3">
+                <p className="text-xs font-semibold text-accent">
+                  Copy this key now — you won't be able to see it again.
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 truncate rounded-lg bg-black/40 px-2 py-1.5 text-xs text-text">{justCreatedKey}</code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(justCreatedKey)
+                      setJustCreatedKey(null)
+                    }}
+                    className="shrink-0 rounded-md border border-accent/30 bg-accent/10 px-2 py-1.5 text-accent"
+                  >
+                    <Icon name="content_copy" size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Input placeholder="Key name (optional)" value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} />
+              <Button onClick={handleCreateApiKey} disabled={creatingKey || apiKeys.length >= 5} className="shrink-0">
+                <Icon name="add" size={16} />
+                {creatingKey ? "Creating..." : "New Key"}
+              </Button>
+            </div>
+            {apiKeyErr && <p className="text-sm text-danger">{apiKeyErr}</p>}
+
+            {apiKeysLoading && <p className="text-xs text-text-muted">Loading...</p>}
+            {!apiKeysLoading && apiKeys.length === 0 && (
+              <p className="text-xs text-text-muted">No API keys yet.</p>
+            )}
+            <div className="flex flex-col gap-1.5">
+              {apiKeys.map((k) => (
+                <div key={k.id} className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/3 px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm text-text">
+                      {k.name || "Unnamed key"} <span className="text-text-muted">· {k.key_prefix}…</span>
+                    </p>
+                    <p className="text-xs text-text-muted">
+                      Created {new Date(k.created_at).toLocaleDateString()}
+                      {k.last_used_at ? ` · last used ${new Date(k.last_used_at).toLocaleDateString()}` : " · never used"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleRevokeApiKey(k.id)}
+                    className="shrink-0 rounded-md border border-danger/30 bg-danger/10 px-2 py-1 text-danger"
+                  >
+                    <Icon name="delete" size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
 
       <Card className="border-danger/30">

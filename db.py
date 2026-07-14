@@ -41,6 +41,7 @@ class User(Base):
     automation_rules = relationship("AutomationRule", back_populates="user", cascade="all, delete-orphan")
     owned_workspaces = relationship("Workspace", back_populates="owner", cascade="all, delete-orphan")
     workspace_memberships = relationship("WorkspaceMember", back_populates="user", cascade="all, delete-orphan")
+    api_keys = relationship("ApiKey", back_populates="user", cascade="all, delete-orphan")
 
 
 class ChatMessage(Base):
@@ -226,6 +227,26 @@ class WorkspaceChatMessage(Base):
 MAX_WORKSPACE_MEMBERS = 20
 MAX_WORKSPACE_DOCUMENTS = 100
 MAX_WORKSPACE_CHAT_MESSAGES = 200
+
+
+class ApiKey(Base):
+    """A Pro-tier personal access token for the public API (/v1/*)."""
+
+    __tablename__ = "api_keys"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String(100), default="")
+    key_hash = Column(String(64), unique=True, nullable=False)
+    key_prefix = Column(String(16), nullable=False)
+    revoked = Column(Boolean, default=False, nullable=False)
+    last_used_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="api_keys")
+
+
+MAX_API_KEYS_PER_USER = 5
 
 
 def init_db():
@@ -622,3 +643,40 @@ def load_workspace_chat_history(db_session, workspace_id, limit=50):
         .all()
     )
     return list(reversed(rows))
+
+
+def create_api_key(db_session, user_id, name, key_hash, key_prefix):
+    key = ApiKey(user_id=user_id, name=name or "", key_hash=key_hash, key_prefix=key_prefix)
+    db_session.add(key)
+    db_session.commit()
+    db_session.refresh(key)
+    return key
+
+
+def list_api_keys(db_session, user_id):
+    return (
+        db_session.query(ApiKey)
+        .filter(ApiKey.user_id == user_id, ApiKey.revoked == False)  # noqa: E712
+        .order_by(ApiKey.created_at.desc())
+        .all()
+    )
+
+
+def get_api_key_by_hash(db_session, key_hash):
+    return db_session.query(ApiKey).filter(ApiKey.key_hash == key_hash, ApiKey.revoked == False).first()  # noqa: E712
+
+
+def touch_api_key(db_session, key_id):
+    key = db_session.query(ApiKey).filter(ApiKey.id == key_id).first()
+    if key:
+        key.last_used_at = datetime.utcnow()
+        db_session.commit()
+
+
+def revoke_api_key(db_session, user_id, key_id):
+    key = db_session.query(ApiKey).filter(ApiKey.id == key_id, ApiKey.user_id == user_id).first()
+    if key:
+        key.revoked = True
+        db_session.commit()
+        return True
+    return False
