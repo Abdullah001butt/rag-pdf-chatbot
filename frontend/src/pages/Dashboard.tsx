@@ -21,9 +21,9 @@ import { LoadingState } from "@/components/Spinner"
 import { Icon } from "@/components/ui/icon"
 
 const TABS = [
-  { key: "chat", icon: "chat", labelKey: "dash.tab.chat" },
-  { key: "summary", icon: "summarize", labelKey: "dash.tab.summary" },
-  { key: "notes", icon: "menu_book", labelKey: "dash.tab.notes" },
+  { key: "chat", icon: "chat", labelKey: "dash.tab.chat", descKey: "dash.tagline" },
+  { key: "summary", icon: "summarize", labelKey: "dash.tab.summary", descKey: "dash.summaryTitle" },
+  { key: "notes", icon: "menu_book", labelKey: "dash.tab.notes", descKey: "dash.notesTitle" },
   { key: "quiz", icon: "quiz", labelKey: "dash.tab.quiz" },
   { key: "flashcards", icon: "style", labelKey: "dash.tab.flashcards" },
   { key: "compare", icon: "difference", labelKey: "dash.tab.compare" },
@@ -32,7 +32,7 @@ const TABS = [
   { key: "formfiller", icon: "assignment", labelKey: "dash.tab.formfiller" },
   { key: "batch", icon: "bolt", labelKey: "dash.tab.batch" },
   { key: "agent", icon: "smart_toy", labelKey: "dash.tab.agent" },
-  { key: "automations", icon: "cycle", labelKey: "dash.tab.automations" },
+  { key: "automations", icon: "cycle", labelKey: "dash.tab.automations", descKey: "automations.description" },
 ] as const
 
 type TabKey = (typeof TABS)[number]["key"]
@@ -148,7 +148,9 @@ export default function Dashboard() {
               <p className="truncate text-[15px] font-semibold leading-tight text-text">
                 {activeTab ? t(activeTab.labelKey) : "Documind AI"}
               </p>
-              <p className="truncate text-xs text-text-muted">{t("dash.tagline")}</p>
+              {activeTab && "descKey" in activeTab && (
+                <p className="truncate text-xs text-text-muted">{t(activeTab.descKey)}</p>
+              )}
             </div>
           </div>
           <LanguageSwitcher />
