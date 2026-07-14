@@ -1,6 +1,7 @@
 import * as React from "react"
 import { LANGUAGES } from "@/i18n/translations"
 import { useLanguage } from "@/context/LanguageContext"
+import { Icon } from "@/components/ui/icon"
 
 export function LanguageSwitcher({ className = "" }: { className?: string }) {
   const { lang, setLang } = useLanguage()
@@ -23,7 +24,8 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs font-semibold text-white/70 transition-colors hover:border-white/30 hover:text-white"
       >
-        🌐 {current.native}
+        <Icon name="language" size={16} />
+        {current.native}
       </button>
       {open && (
         <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-xl border border-white/10 bg-black/95 py-1 shadow-xl backdrop-blur-md">
@@ -39,7 +41,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
               }`}
             >
               <span>{l.native}</span>
-              {l.code === lang && <span>✓</span>}
+              {l.code === lang && <Icon name="check" size={14} />}
             </button>
           ))}
         </div>
