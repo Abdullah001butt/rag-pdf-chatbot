@@ -77,7 +77,7 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
 
   return (
     <aside className="scrollbar-thin flex h-full w-full flex-col gap-6 overflow-y-auto border-r border-white/10 bg-surface p-5 md:w-72">
-      <div className="flex items-center gap-2.5 border-b border-white/8 pb-4">
+      <div className="hidden items-center gap-2.5 border-b border-white/8 pb-4 md:flex">
         <img src="/logo.png" alt="Documind AI" className="h-8 w-auto" onError={(e) => (e.currentTarget.style.display = "none")} />
         <div>
           <p className="text-sm font-extrabold leading-tight text-text">
