@@ -1,6 +1,7 @@
 import * as React from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { api } from "@/lib/api"
+import { useAuth } from "@/context/AuthContext"
 import { useLanguage } from "@/context/LanguageContext"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,7 @@ export default function VerifyEmailPage() {
   const [errorDetail, setErrorDetail] = React.useState("")
   const navigate = useNavigate()
   const { t } = useLanguage()
+  const { updateUser } = useAuth()
 
   React.useEffect(() => {
     if (!token) {
@@ -22,8 +24,16 @@ export default function VerifyEmailPage() {
     }
     api
       .post("/auth/verify-email", { token })
-      .then(() => {
+      .then(async () => {
         setStatus("success")
+        // Refresh the cached user so the "verify your email" banner clears
+        // immediately instead of waiting for the next login.
+        try {
+          const { data } = await api.get("/auth/me")
+          updateUser(data)
+        } catch {
+          // Not logged in on this device/browser — nothing to refresh.
+        }
       })
       .catch((err) => {
         setStatus("error")
