@@ -1,6 +1,7 @@
 import * as React from "react"
 import { api, type Flashcard } from "@/lib/api"
 import { useLanguage } from "@/context/LanguageContext"
+import { useToast } from "@/context/ToastContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 import { DownloadButton } from "@/components/DownloadButton"
@@ -13,13 +14,13 @@ interface FlashcardsPanelProps {
 
 export function FlashcardsPanel({ files, locked }: FlashcardsPanelProps) {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [source, setSource] = React.useState(files[0] || "")
   const [numCards, setNumCards] = React.useState(10)
   const [cards, setCards] = React.useState<Flashcard[] | null>(null)
   const [index, setIndex] = React.useState(0)
   const [flipped, setFlipped] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     if (!source && files.length > 0) setSource(files[0])
@@ -39,7 +40,6 @@ export function FlashcardsPanel({ files, locked }: FlashcardsPanelProps) {
 
   async function handleGenerate() {
     setBusy(true)
-    setError(null)
     setCards(null)
     setIndex(0)
     setFlipped(false)
@@ -47,7 +47,7 @@ export function FlashcardsPanel({ files, locked }: FlashcardsPanelProps) {
       const { data } = await api.post(`/generate/flashcards?num_cards=${numCards}`, { source })
       setCards(data.result)
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Couldn't generate flashcards. Please try again.")
+      toast(err?.response?.data?.detail || "Couldn't generate flashcards. Please try again.", "error")
     } finally {
       setBusy(false)
     }
@@ -87,7 +87,6 @@ export function FlashcardsPanel({ files, locked }: FlashcardsPanelProps) {
       </div>
 
       {busy && <LoadingState label={t("flashcards.generating")} />}
-      {error && <p className="text-sm text-danger">{error}</p>}
 
       {card && cards && (
         <div className="flex flex-col gap-3">

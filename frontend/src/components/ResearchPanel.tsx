@@ -1,6 +1,7 @@
 import * as React from "react"
 import { api } from "@/lib/api"
 import { useLanguage } from "@/context/LanguageContext"
+import { useToast } from "@/context/ToastContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { LoadingState } from "@/components/Spinner"
@@ -14,11 +15,11 @@ interface ResearchPanelProps {
 
 export function ResearchPanel({ files, locked }: ResearchPanelProps) {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [topic, setTopic] = React.useState("")
   const [report, setReport] = React.useState<string | null>(null)
   const [subQuestions, setSubQuestions] = React.useState<string[]>([])
   const [busy, setBusy] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
 
   if (locked) {
     return (
@@ -36,7 +37,6 @@ export function ResearchPanel({ files, locked }: ResearchPanelProps) {
     e.preventDefault()
     if (!topic.trim()) return
     setBusy(true)
-    setError(null)
     setReport(null)
     setSubQuestions([])
     try {
@@ -44,7 +44,7 @@ export function ResearchPanel({ files, locked }: ResearchPanelProps) {
       setReport(data.report)
       setSubQuestions(data.sub_questions || [])
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Research generation failed. Please try again.")
+      toast(err?.response?.data?.detail || "Research generation failed. Please try again.", "error")
     } finally {
       setBusy(false)
     }
@@ -67,7 +67,6 @@ export function ResearchPanel({ files, locked }: ResearchPanelProps) {
       </form>
 
       {busy && <LoadingState label={t("research.running")} />}
-      {error && <p className="text-sm text-danger">{error}</p>}
 
       {subQuestions.length > 0 && (
         <details className="rounded-2xl border border-border bg-white/5 p-4 text-sm text-text-muted">

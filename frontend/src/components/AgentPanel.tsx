@@ -1,6 +1,7 @@
 import * as React from "react"
 import { api, type QuizQuestion, type Flashcard } from "@/lib/api"
 import { useLanguage } from "@/context/LanguageContext"
+import { useToast } from "@/context/ToastContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 import { Icon } from "@/components/ui/icon"
@@ -29,28 +30,27 @@ interface StepResult extends PlanStep {
 
 export function AgentPanel({ files }: AgentPanelProps) {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [goal, setGoal] = React.useState("")
   const [planning, setPlanning] = React.useState(false)
   const [running, setRunning] = React.useState(false)
   const [steps, setSteps] = React.useState<StepResult[]>([])
-  const [error, setError] = React.useState<string | null>(null)
 
   async function handlePlanAndRun() {
     if (!goal.trim()) return
     setPlanning(true)
-    setError(null)
     setSteps([])
     let plan: PlanStep[] = []
     try {
       const { data } = await api.post("/generate/agent-plan", { goal })
       plan = data.steps || []
     } catch (err: any) {
-      setError(err?.response?.data?.detail || t("agentPanel.errPlanFailed"))
+      toast(err?.response?.data?.detail || t("agentPanel.errPlanFailed"), "error")
       setPlanning(false)
       return
     }
     if (plan.length === 0) {
-      setError(t("agentPanel.errNoPlan"))
+      toast(t("agentPanel.errNoPlan"), "error")
       setPlanning(false)
       return
     }
@@ -153,8 +153,6 @@ export function AgentPanel({ files }: AgentPanelProps) {
           )}
         </Button>
       </div>
-
-      {error && <p className="text-sm text-danger">{error}</p>}
 
       {steps.length > 0 && (
         <div className="flex flex-col gap-3">

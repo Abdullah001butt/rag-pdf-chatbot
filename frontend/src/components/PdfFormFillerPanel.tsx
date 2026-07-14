@@ -4,6 +4,7 @@ import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url"
 import { PDFDocument, PDFTextField, PDFCheckBox, PDFDropdown, PDFRadioGroup, PDFOptionList } from "pdf-lib"
 import { api } from "@/lib/api"
 import { useLanguage } from "@/context/LanguageContext"
+import { useToast } from "@/context/ToastContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 import { Icon } from "@/components/ui/icon"
@@ -42,6 +43,7 @@ const CHECKBOX_FIELD_PX = { width: 18, height: 18 }
 
 export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [source, setSource] = React.useState(files[0] || "")
   const [pdfBytes, setPdfBytes] = React.useState<ArrayBuffer | null>(null)
   const [mode, setMode] = React.useState<"fill" | "design">("fill")
@@ -187,7 +189,6 @@ export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
   async function handleExportFilled() {
     if (!pdfBytes) return
     setExporting(true)
-    setError(null)
     try {
       const doc = await PDFDocument.load(pdfBytes)
       const form = doc.getForm()
@@ -217,7 +218,7 @@ export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
       form.flatten()
       downloadDoc(await doc.save(), "_filled.pdf")
     } catch (err: any) {
-      setError(`${t("editorPanel.errExportFailed")} ` + (err?.message || "unknown error"))
+      toast(`${t("editorPanel.errExportFailed")} ` + (err?.message || "unknown error"), "error")
     } finally {
       setExporting(false)
     }
@@ -226,7 +227,6 @@ export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
   async function handleExportFillable() {
     if (!pdfBytes || designFields.length === 0) return
     setExporting(true)
-    setError(null)
     try {
       const doc = await PDFDocument.load(pdfBytes)
       const form = doc.getForm()
@@ -250,7 +250,7 @@ export function PdfFormFillerPanel({ files }: PdfFormFillerPanelProps) {
 
       downloadDoc(await doc.save(), "_fillable.pdf")
     } catch (err: any) {
-      setError(`${t("editorPanel.errExportFailed")} ` + (err?.message || "unknown error"))
+      toast(`${t("editorPanel.errExportFailed")} ` + (err?.message || "unknown error"), "error")
     } finally {
       setExporting(false)
     }

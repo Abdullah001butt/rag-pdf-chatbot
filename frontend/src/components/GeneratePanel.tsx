@@ -1,6 +1,7 @@
 import * as React from "react"
 import { api } from "@/lib/api"
 import { useLanguage } from "@/context/LanguageContext"
+import { useToast } from "@/context/ToastContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 import { DownloadButton } from "@/components/DownloadButton"
@@ -26,10 +27,10 @@ export function GeneratePanel({
   exportFilenameSuffix,
 }: GeneratePanelProps) {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [source, setSource] = React.useState(files[0] || "")
   const [result, setResult] = React.useState<string | null>(null)
   const [busy, setBusy] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     if (!source && files.length > 0) setSource(files[0])
@@ -38,13 +39,12 @@ export function GeneratePanel({
   async function handleGenerate() {
     if (!source) return
     setBusy(true)
-    setError(null)
     setResult(null)
     try {
       const { data } = await api.post(endpoint, { source })
       setResult(data.result)
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Generation failed. Please try again.")
+      toast(err?.response?.data?.detail || "Generation failed. Please try again.", "error")
     } finally {
       setBusy(false)
     }
@@ -76,7 +76,6 @@ export function GeneratePanel({
       </div>
 
       {busy && <LoadingState label={loadingLabel} />}
-      {error && <p className="text-sm text-danger">{error}</p>}
 
       {result && (
         <>

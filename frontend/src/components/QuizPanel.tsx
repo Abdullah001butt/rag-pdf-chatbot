@@ -1,6 +1,7 @@
 import * as React from "react"
 import { api, type QuizQuestion } from "@/lib/api"
 import { useLanguage } from "@/context/LanguageContext"
+import { useToast } from "@/context/ToastContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 import { DownloadButton } from "@/components/DownloadButton"
@@ -13,13 +14,13 @@ interface QuizPanelProps {
 
 export function QuizPanel({ files, locked }: QuizPanelProps) {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [source, setSource] = React.useState(files[0] || "")
   const [numQuestions, setNumQuestions] = React.useState(5)
   const [quiz, setQuiz] = React.useState<QuizQuestion[] | null>(null)
   const [answers, setAnswers] = React.useState<Record<number, string>>({})
   const [submitted, setSubmitted] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     if (!source && files.length > 0) setSource(files[0])
@@ -39,7 +40,6 @@ export function QuizPanel({ files, locked }: QuizPanelProps) {
 
   async function handleGenerate() {
     setBusy(true)
-    setError(null)
     setQuiz(null)
     setAnswers({})
     setSubmitted(false)
@@ -47,7 +47,7 @@ export function QuizPanel({ files, locked }: QuizPanelProps) {
       const { data } = await api.post(`/generate/quiz?num_questions=${numQuestions}`, { source })
       setQuiz(data.result)
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Couldn't generate the quiz. Please try again.")
+      toast(err?.response?.data?.detail || "Couldn't generate the quiz. Please try again.", "error")
     } finally {
       setBusy(false)
     }
@@ -87,7 +87,6 @@ export function QuizPanel({ files, locked }: QuizPanelProps) {
       </div>
 
       {busy && <LoadingState label={t("quiz.generating")} />}
-      {error && <p className="text-sm text-danger">{error}</p>}
 
       {quiz && (
         <div className="flex flex-col gap-4">

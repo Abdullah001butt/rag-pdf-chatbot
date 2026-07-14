@@ -1,6 +1,7 @@
 import * as React from "react"
 import { api } from "@/lib/api"
 import { useLanguage } from "@/context/LanguageContext"
+import { useToast } from "@/context/ToastContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 import { DownloadButton } from "@/components/DownloadButton"
@@ -13,11 +14,11 @@ interface ComparePanelProps {
 
 export function ComparePanel({ files, locked }: ComparePanelProps) {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [sourceA, setSourceA] = React.useState(files[0] || "")
   const [sourceB, setSourceB] = React.useState(files[1] || "")
   const [result, setResult] = React.useState<string | null>(null)
   const [busy, setBusy] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     if (!sourceA && files[0]) setSourceA(files[0])
@@ -38,17 +39,16 @@ export function ComparePanel({ files, locked }: ComparePanelProps) {
 
   async function handleCompare() {
     if (sourceA === sourceB) {
-      setError(t("compare.chooseDifferent"))
+      toast(t("compare.chooseDifferent"), "error")
       return
     }
     setBusy(true)
-    setError(null)
     setResult(null)
     try {
       const { data } = await api.post("/generate/compare", { source_a: sourceA, source_b: sourceB })
       setResult(data.result)
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Comparison failed. Please try again.")
+      toast(err?.response?.data?.detail || "Comparison failed. Please try again.", "error")
     } finally {
       setBusy(false)
     }
@@ -89,7 +89,6 @@ export function ComparePanel({ files, locked }: ComparePanelProps) {
       </div>
 
       {busy && <LoadingState label={t("compare.running")} />}
-      {error && <p className="text-sm text-danger">{error}</p>}
 
       {result && (
         <>

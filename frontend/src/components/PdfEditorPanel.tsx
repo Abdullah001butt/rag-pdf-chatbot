@@ -4,6 +4,7 @@ import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url"
 import { PDFDocument, StandardFonts, rgb, type RGB } from "pdf-lib"
 import { api } from "@/lib/api"
 import { useLanguage } from "@/context/LanguageContext"
+import { useToast } from "@/context/ToastContext"
 import { Button } from "@/components/ui/button"
 import { LoadingState } from "@/components/Spinner"
 import { Icon } from "@/components/ui/icon"
@@ -106,6 +107,7 @@ function hexToRgb(hex: string): RGB {
 
 export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const REWRITE_ACTIONS = REWRITE_ACTION_KEYS.map((a) => ({ label: t(a.labelKey), instruction: t(a.instructionKey) }))
   const [source, setSource] = React.useState(files[0] || "")
   const [pdfBytes, setPdfBytes] = React.useState<ArrayBuffer | null>(null)
@@ -123,7 +125,6 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
   const [activeStyle, setActiveStyle] = React.useState<TextStyle>(DEFAULT_STYLE)
   const [loading, setLoading] = React.useState(false)
   const [exporting, setExporting] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
   const [aiBusyKey, setAiBusyKey] = React.useState<string | null>(null)
   const [redacting, setRedacting] = React.useState(false)
   const [ocrProcessedPages, setOcrProcessedPages] = React.useState<Set<number>>(new Set())
@@ -152,7 +153,6 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
 
   async function loadDocument(filename: string) {
     setLoading(true)
-    setError(null)
     setEdits({})
     setEditStyles({})
     setAddedTexts([])
@@ -172,7 +172,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
         Array.from({ length: doc.numPages }, (_, i) => ({ id: `orig-${i}`, type: "page" as const, origIndex: i }))
       )
     } catch (err: any) {
-      setError(err?.response?.data?.detail || t("editorPanel.errLoadDocument"))
+      toast(err?.response?.data?.detail || t("editorPanel.errLoadDocument"), "error")
     } finally {
       setLoading(false)
     }
@@ -374,7 +374,6 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
     const pageSize = pageSizes[origIndex]
     if (!pageSize) return
     setOcrBusy(true)
-    setError(null)
     try {
       const { data } = await api.post("/documents/ocr-page-boxes", null, {
         params: { filename: source, page_index: origIndex },
@@ -400,7 +399,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
       setPageTextItems((prev) => ({ ...prev, [origIndex]: items }))
       setOcrProcessedPages((prev) => new Set(prev).add(origIndex))
     } catch (err: any) {
-      setError(err?.response?.data?.detail || t("editorPanel.errOcrFailed"))
+      toast(err?.response?.data?.detail || t("editorPanel.errOcrFailed"), "error")
     } finally {
       setOcrBusy(false)
     }
@@ -410,7 +409,6 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
     const text = isAdded ? addedTexts.find((a) => a.id === key)?.text : edits[key]
     if (!text || !text.trim()) return
     setAiBusyKey(key)
-    setError(null)
     try {
       const { data } = await api.post("/generate/rewrite-text", { text, instruction })
       if (isAdded) {
@@ -419,7 +417,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
         setEdits((prev) => ({ ...prev, [key]: data.result }))
       }
     } catch (err: any) {
-      setError(err?.response?.data?.detail || t("editorPanel.errRewriteFailed"))
+      toast(err?.response?.data?.detail || t("editorPanel.errRewriteFailed"), "error")
     } finally {
       setAiBusyKey(null)
     }
@@ -427,7 +425,6 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
 
   function handleAutoRedactPII() {
     setRedacting(true)
-    setError(null)
     let count = 0
     const newEdits: Record<string, string> = {}
     Object.values(pageTextItems)
@@ -440,7 +437,11 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
         }
       })
     setEdits((prev) => ({ ...prev, ...newEdits }))
-    setError(count > 0 ? null : t("editorPanel.noPiiFound"))
+    if (count > 0) {
+      toast(`Redacted ${count} instance${count === 1 ? "" : "s"}.`, "success")
+    } else {
+      toast(t("editorPanel.noPiiFound"), "info")
+    }
     setRedacting(false)
   }
 
@@ -450,7 +451,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
 
   function deleteCurrentPage() {
     if (pageOrder.length <= 1) {
-      setError(t("editorPanel.errDeleteOnlyPage"))
+      toast(t("editorPanel.errDeleteOnlyPage"), "error")
       return
     }
     setPageOrder((prev) => prev.filter((_, i) => i !== currentPos))
@@ -567,7 +568,6 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
 
   async function handleExport() {
     setExporting(true)
-    setError(null)
     try {
       const editedBytes = await buildExportedPdfBytes()
       const blob = new Blob([editedBytes as BlobPart], { type: "application/pdf" })
@@ -580,7 +580,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
       a.remove()
       URL.revokeObjectURL(url)
     } catch (err: any) {
-      setError(`${t("editorPanel.errExportFailed")} ` + (err?.message || "unknown error"))
+      toast(`${t("editorPanel.errExportFailed")} ` + (err?.message || "unknown error"), "error")
     } finally {
       setExporting(false)
     }
@@ -588,7 +588,6 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
 
   async function handleSaveVersion() {
     setSavingVersion(true)
-    setError(null)
     try {
       const editedBytes = await buildExportedPdfBytes()
       const blob = new Blob([editedBytes as BlobPart], { type: "application/pdf" })
@@ -600,7 +599,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
       setVersionLabel("")
       if (versionsOpen) await loadVersions()
     } catch (err: any) {
-      setError(err?.response?.data?.detail || `${t("editorPanel.errExportFailed")} ` + (err?.message || "unknown error"))
+      toast(err?.response?.data?.detail || `${t("editorPanel.errExportFailed")} ` + (err?.message || "unknown error"), "error")
     } finally {
       setSavingVersion(false)
     }
@@ -612,7 +611,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
       const { data } = await api.get("/versions", { params: { filename: source } })
       setVersions(data.versions || [])
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Couldn't load versions.")
+      toast(err?.response?.data?.detail || "Couldn't load versions.", "error")
     } finally {
       setVersionsLoading(false)
     }
@@ -624,7 +623,6 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
   }
 
   async function handleRestoreVersion(versionId: number) {
-    setError(null)
     try {
       const { data } = await api.get(`/versions/${versionId}/download`, { responseType: "arraybuffer" })
       setPdfBytes(data)
@@ -643,17 +641,16 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
       setOcrProcessedPages(new Set())
       setVersionsOpen(false)
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Couldn't restore this version.")
+      toast(err?.response?.data?.detail || "Couldn't restore this version.", "error")
     }
   }
 
   async function handleDeleteVersion(versionId: number) {
-    setError(null)
     try {
       await api.delete(`/versions/${versionId}`)
       setVersions((prev) => prev.filter((v) => v.id !== versionId))
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Couldn't delete this version.")
+      toast(err?.response?.data?.detail || "Couldn't delete this version.", "error")
     }
   }
 
@@ -824,7 +821,6 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
         </label>
       </div>
 
-      {error && <p className="text-sm text-danger">{error}</p>}
       {loading && <LoadingState label={t("editorPanel.loadingDocument")} />}
 
       {pdfDoc && currentEntry && (
