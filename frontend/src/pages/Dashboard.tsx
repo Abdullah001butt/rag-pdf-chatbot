@@ -18,6 +18,7 @@ import { AgentPanel } from "@/components/AgentPanel"
 import { AutomationsPanel } from "@/components/AutomationsPanel"
 import { WorkspacesPanel } from "@/components/WorkspacesPanel"
 import { AnalyticsPanel } from "@/components/AnalyticsPanel"
+import { KnowledgeGraphPanel } from "@/components/KnowledgeGraphPanel"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { DashboardSkeleton } from "@/components/ui/skeleton"
 import { Icon } from "@/components/ui/icon"
@@ -30,6 +31,7 @@ const TABS = [
   { key: "flashcards", icon: "style", labelKey: "dash.tab.flashcards" },
   { key: "compare", icon: "difference", labelKey: "dash.tab.compare" },
   { key: "research", icon: "travel_explore", labelKey: "dash.tab.research" },
+  { key: "graph", icon: "hub", labelKey: "dash.tab.graph", descKey: "graph.description" },
   { key: "editor", icon: "edit_document", labelKey: "dash.tab.editor" },
   { key: "formfiller", icon: "assignment", labelKey: "dash.tab.formfiller" },
   { key: "batch", icon: "bolt", labelKey: "dash.tab.batch" },
@@ -209,6 +211,7 @@ export default function Dashboard() {
               {tab === "flashcards" && <FlashcardsPanel files={files} locked={isLocked("flashcards")} />}
               {tab === "compare" && <ComparePanel files={files} locked={isLocked("compare")} />}
               {tab === "research" && <ResearchPanel files={files} locked={isLocked("research")} />}
+              {tab === "graph" && <KnowledgeGraphPanel files={files} />}
               {tab === "editor" && <PdfEditorPanel files={files} />}
               {tab === "formfiller" && <PdfFormFillerPanel files={files} />}
               {tab === "batch" && <BatchProcessPanel files={files} />}

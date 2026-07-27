@@ -96,6 +96,29 @@ Findings:
 
 Research Report:"""
 
+KNOWLEDGE_GRAPH_PROMPT = """Extract a knowledge graph from the document below: the key entities (people, organizations, concepts, terms, dates, clauses — whatever is central to this document) and the relationships between them.
+
+Return STRICT JSON only, no markdown fences, no commentary, in this exact shape:
+{{
+  "nodes": [{{"id": "short unique id", "label": "display name", "type": "one of: person, org, concept, term, date, other"}}],
+  "edges": [{{"source": "node id", "target": "node id", "label": "short relationship phrase, e.g. 'defines', 'reports to', 'depends on'"}}]
+}}
+
+Rules:
+- 8 to 20 nodes. Prioritize the most important, most-connected entities — skip trivial mentions.
+- Every edge's source and target must reference an id present in nodes.
+- Keep labels short (1-4 words).
+
+Document ({source}):
+{text}
+
+JSON:"""
+
+
+def generate_knowledge_graph(source, text, api_key):
+    raw = generate_with_gemini(KNOWLEDGE_GRAPH_PROMPT.format(source=source, text=text), api_key, temperature=0.2)
+    return parse_json_response(raw)
+
 
 def generate_with_gemini(prompt, api_key, temperature=0.3):
     model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=temperature, google_api_key=api_key)
