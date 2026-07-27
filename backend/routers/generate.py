@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 
 import rag_core
@@ -9,6 +11,7 @@ from rag_pipeline import get_or_build_vector_store, get_document_text, resolve_a
 from store import get_user_store
 
 router = APIRouter(prefix="/generate", tags=["generate"])
+logger = logging.getLogger("documind.generate")
 
 
 def _require_api_key(user_api_key):
@@ -119,6 +122,9 @@ def knowledge_graph(
         graph = rag_core.generate_knowledge_graph(payload.source, text, api_key)
     except (ValueError, KeyError) as e:
         raise HTTPException(status_code=422, detail=f"Couldn't parse knowledge graph output: {e}")
+    except Exception as e:
+        logger.exception(f"Knowledge graph generation failed for user {user.id} on {payload.source!r}")
+        raise HTTPException(status_code=502, detail=f"Knowledge graph generation failed: {e}")
     record_usage(db, user.id, "chat")
     return graph
 
@@ -137,6 +143,9 @@ def audio_overview(
         script = rag_core.generate_audio_overview(payload.source, text, api_key)
     except (ValueError, KeyError) as e:
         raise HTTPException(status_code=422, detail=f"Couldn't parse audio overview output: {e}")
+    except Exception as e:
+        logger.exception(f"Audio overview generation failed for user {user.id} on {payload.source!r}")
+        raise HTTPException(status_code=502, detail=f"Audio overview generation failed: {e}")
     record_usage(db, user.id, "chat")
     return {"script": script}
 
