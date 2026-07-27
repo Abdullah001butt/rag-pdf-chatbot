@@ -19,6 +19,7 @@ import { AutomationsPanel } from "@/components/AutomationsPanel"
 import { WorkspacesPanel } from "@/components/WorkspacesPanel"
 import { AnalyticsPanel } from "@/components/AnalyticsPanel"
 import { KnowledgeGraphPanel } from "@/components/KnowledgeGraphPanel"
+import { AudioOverviewPanel } from "@/components/AudioOverviewPanel"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { DashboardSkeleton } from "@/components/ui/skeleton"
 import { Icon } from "@/components/ui/icon"
@@ -32,6 +33,7 @@ const TABS = [
   { key: "compare", icon: "difference", labelKey: "dash.tab.compare" },
   { key: "research", icon: "travel_explore", labelKey: "dash.tab.research" },
   { key: "graph", icon: "hub", labelKey: "dash.tab.graph", descKey: "graph.description" },
+  { key: "audio", icon: "podcasts", labelKey: "dash.tab.audio", descKey: "audio.description" },
   { key: "editor", icon: "edit_document", labelKey: "dash.tab.editor" },
   { key: "formfiller", icon: "assignment", labelKey: "dash.tab.formfiller" },
   { key: "batch", icon: "bolt", labelKey: "dash.tab.batch" },
@@ -212,6 +214,7 @@ export default function Dashboard() {
               {tab === "compare" && <ComparePanel files={files} locked={isLocked("compare")} />}
               {tab === "research" && <ResearchPanel files={files} locked={isLocked("research")} />}
               {tab === "graph" && <KnowledgeGraphPanel files={files} />}
+              {tab === "audio" && <AudioOverviewPanel files={files} />}
               {tab === "editor" && <PdfEditorPanel files={files} />}
               {tab === "formfiller" && <PdfFormFillerPanel files={files} />}
               {tab === "batch" && <BatchProcessPanel files={files} />}

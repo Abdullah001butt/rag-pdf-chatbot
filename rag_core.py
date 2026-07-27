@@ -120,6 +120,28 @@ def generate_knowledge_graph(source, text, api_key):
     return parse_json_response(raw)
 
 
+AUDIO_OVERVIEW_PROMPT = """Write a lively, natural two-host podcast conversation where Host A and Host B discuss and explain the document below to a listener who hasn't read it — like a podcast "overview" segment.
+
+Guidelines:
+- 10 to 16 exchanges total, alternating naturally (not strictly one-for-one).
+- Host A is curious and asks clarifying questions; Host B explains and adds insight. Both can react, agree, disagree respectfully, or add color.
+- Reference specific facts, names, and details from the document — don't stay generic.
+- Conversational spoken style: contractions, short sentences, no bullet points or markdown.
+- Start with a brief, engaging hook and end with a short wrap-up line.
+
+Return STRICT JSON only, no markdown fences, no commentary — an array of objects with keys "speaker" ("A" or "B") and "line" (the spoken text).
+
+Document ({source}):
+{text}
+
+JSON:"""
+
+
+def generate_audio_overview(source, text, api_key):
+    raw = generate_with_gemini(AUDIO_OVERVIEW_PROMPT.format(source=source, text=text), api_key, temperature=0.6)
+    return parse_json_response(raw)
+
+
 def generate_with_gemini(prompt, api_key, temperature=0.3):
     model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=temperature, google_api_key=api_key)
     return model.invoke(prompt).content

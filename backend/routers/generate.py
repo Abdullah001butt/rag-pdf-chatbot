@@ -123,6 +123,24 @@ def knowledge_graph(
     return graph
 
 
+@router.post("/audio-overview")
+def audio_overview(
+    payload: GenerateRequest,
+    user=Depends(get_current_user),
+    db=Depends(get_db),
+    user_api_key: str | None = Depends(get_user_api_key),
+):
+    enforce_action(db, user, "chat")
+    api_key = _require_api_key(user_api_key)
+    text = get_document_text(user.id, api_key, payload.source)
+    try:
+        script = rag_core.generate_audio_overview(payload.source, text, api_key)
+    except (ValueError, KeyError) as e:
+        raise HTTPException(status_code=422, detail=f"Couldn't parse audio overview output: {e}")
+    record_usage(db, user.id, "chat")
+    return {"script": script}
+
+
 @router.post("/research")
 def research(
     payload: ResearchRequest,
