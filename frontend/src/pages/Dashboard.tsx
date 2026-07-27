@@ -1,6 +1,8 @@
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
+import { AnimatePresence, motion } from "framer-motion"
 import { api, type BillingStatus } from "@/lib/api"
+import { OverviewPanel } from "@/components/OverviewPanel"
 import { useAuth } from "@/context/AuthContext"
 import { useLanguage } from "@/context/LanguageContext"
 import { Sidebar } from "@/components/Sidebar"
@@ -24,29 +26,48 @@ import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { DashboardSkeleton } from "@/components/ui/skeleton"
 import { Icon } from "@/components/ui/icon"
 
+const GROUP_COLORS: Record<string, string> = {
+  core: "#10b981",
+  documents: "#3b82f6",
+  automation: "#f59e0b",
+  team: "#a78bfa",
+  insights: "#ec4899",
+}
+
 const TABS = [
-  { key: "chat", icon: "chat", labelKey: "dash.tab.chat", descKey: "dash.tagline" },
-  { key: "summary", icon: "summarize", labelKey: "dash.tab.summary", descKey: "dash.summaryTitle" },
-  { key: "notes", icon: "menu_book", labelKey: "dash.tab.notes", descKey: "dash.notesTitle" },
-  { key: "quiz", icon: "quiz", labelKey: "dash.tab.quiz" },
-  { key: "flashcards", icon: "style", labelKey: "dash.tab.flashcards" },
-  { key: "compare", icon: "difference", labelKey: "dash.tab.compare" },
-  { key: "research", icon: "travel_explore", labelKey: "dash.tab.research" },
-  { key: "graph", icon: "hub", labelKey: "dash.tab.graph", descKey: "graph.description" },
-  { key: "audio", icon: "podcasts", labelKey: "dash.tab.audio", descKey: "audio.description" },
-  { key: "editor", icon: "edit_document", labelKey: "dash.tab.editor" },
-  { key: "formfiller", icon: "assignment", labelKey: "dash.tab.formfiller" },
-  { key: "batch", icon: "bolt", labelKey: "dash.tab.batch" },
-  { key: "agent", icon: "smart_toy", labelKey: "dash.tab.agent" },
-  { key: "automations", icon: "cycle", labelKey: "dash.tab.automations", descKey: "automations.description" },
-  { key: "workspaces", icon: "groups", labelKey: "dash.tab.workspaces", descKey: "workspaces.description" },
-  { key: "analytics", icon: "monitoring", labelKey: "dash.tab.analytics", descKey: "analytics.description" },
+  { key: "overview", icon: "dashboard", labelKey: "dash.tab.overview", group: "core" },
+  { key: "chat", icon: "chat", labelKey: "dash.tab.chat", descKey: "dash.tagline", group: "core" },
+  { key: "summary", icon: "summarize", labelKey: "dash.tab.summary", descKey: "dash.summaryTitle", group: "core" },
+  { key: "notes", icon: "menu_book", labelKey: "dash.tab.notes", descKey: "dash.notesTitle", group: "core" },
+  { key: "quiz", icon: "quiz", labelKey: "dash.tab.quiz", group: "core" },
+  { key: "flashcards", icon: "style", labelKey: "dash.tab.flashcards", group: "core" },
+  { key: "compare", icon: "difference", labelKey: "dash.tab.compare", group: "documents" },
+  { key: "research", icon: "travel_explore", labelKey: "dash.tab.research", group: "documents" },
+  { key: "graph", icon: "hub", labelKey: "dash.tab.graph", descKey: "graph.description", group: "documents" },
+  { key: "audio", icon: "podcasts", labelKey: "dash.tab.audio", descKey: "audio.description", group: "documents" },
+  { key: "editor", icon: "edit_document", labelKey: "dash.tab.editor", group: "documents" },
+  { key: "formfiller", icon: "assignment", labelKey: "dash.tab.formfiller", group: "documents" },
+  { key: "batch", icon: "bolt", labelKey: "dash.tab.batch", group: "documents" },
+  { key: "agent", icon: "smart_toy", labelKey: "dash.tab.agent", group: "automation" },
+  { key: "automations", icon: "cycle", labelKey: "dash.tab.automations", descKey: "automations.description", group: "automation" },
+  { key: "workspaces", icon: "groups", labelKey: "dash.tab.workspaces", descKey: "workspaces.description", group: "team" },
+  { key: "analytics", icon: "monitoring", labelKey: "dash.tab.analytics", descKey: "analytics.description", group: "insights" },
 ] as const
+
+const GROUP_LABEL_KEYS: Record<string, string> = {
+  core: "dash.group.core",
+  documents: "dash.group.documents",
+  automation: "dash.group.automation",
+  team: "dash.group.team",
+  insights: "dash.group.insights",
+}
+
+const GROUPS = ["core", "documents", "automation", "team", "insights"] as const
 
 type TabKey = (typeof TABS)[number]["key"]
 
 export default function Dashboard() {
-  const [tab, setTab] = React.useState<TabKey>("chat")
+  const [tab, setTab] = React.useState<TabKey>("overview")
   const [files, setFiles] = React.useState<string[]>([])
   const [billing, setBilling] = React.useState<BillingStatus | null>(null)
   const [loading, setLoading] = React.useState(true)
@@ -147,9 +168,24 @@ export default function Dashboard() {
             </button>
           </div>
         )}
-        <header className="hidden items-center gap-3 border-b border-border bg-surface-2/40 px-6 py-4 md:flex">
+        <header className="relative hidden items-center gap-3 overflow-hidden border-b border-border bg-surface-2/40 px-6 py-4 md:flex">
+          <div
+            className="pointer-events-none absolute inset-0 -z-10 opacity-70 transition-all duration-500"
+            style={{
+              background: `radial-gradient(ellipse 60% 120% at 0% 50%, ${
+                GROUP_COLORS[activeTab?.group ?? "core"]
+              }1a, transparent 70%)`,
+            }}
+          />
           <div className="flex flex-1 items-center gap-2.5 min-w-0">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-accent/25 bg-accent/10 text-accent">
+            <span
+              className="flex h-9 w-9 items-center justify-center rounded-xl border"
+              style={{
+                borderColor: `${GROUP_COLORS[activeTab?.group ?? "core"]}40`,
+                background: `${GROUP_COLORS[activeTab?.group ?? "core"]}1a`,
+                color: GROUP_COLORS[activeTab?.group ?? "core"],
+              }}
+            >
               <Icon name={activeTab?.icon ?? "dashboard"} size={20} filled />
             </span>
             <div className="min-w-0">
@@ -164,65 +200,89 @@ export default function Dashboard() {
           <LanguageSwitcher />
         </header>
 
-        <nav className="scrollbar-thin flex gap-1 overflow-x-auto border-b border-border bg-surface/60 px-4 py-2.5 md:px-6">
-          {TABS.map((tabItem) => (
-            <button
-              key={tabItem.key}
-              onClick={() => setTab(tabItem.key)}
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-semibold transition-colors ${
-                tab === tabItem.key
-                  ? "bg-accent/12 text-accent shadow-[inset_0_0_0_1px_rgba(16,185,129,0.35)]"
-                  : "text-text-muted hover:bg-white/5 hover:text-text"
-              }`}
-            >
-              <Icon name={tabItem.icon} size={18} filled={tab === tabItem.key} />
-              {t(tabItem.labelKey)}
-            </button>
-          ))}
+        <nav className="scrollbar-thin flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border bg-surface/60 px-4 py-3 md:px-6">
+          {GROUPS.map((group, gi) => {
+            const groupTabs = TABS.filter((tb) => tb.group === group)
+            const color = GROUP_COLORS[group]
+            return (
+              <div key={group} className="flex items-center gap-2">
+                {gi > 0 && <span className="mr-2 h-5 w-px bg-white/10" />}
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color }}>
+                  {t(GROUP_LABEL_KEYS[group])}
+                </span>
+                <div className="flex items-center gap-1">
+                  {groupTabs.map((tabItem) => (
+                    <button
+                      key={tabItem.key}
+                      onClick={() => setTab(tabItem.key)}
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-semibold transition-colors ${
+                        tab === tabItem.key ? "text-text" : "text-text-muted hover:bg-white/5 hover:text-text"
+                      }`}
+                      style={tab === tabItem.key ? { background: `${color}22`, boxShadow: `inset 0 0 0 1px ${color}55` } : undefined}
+                    >
+                      <Icon name={tabItem.icon} size={18} filled={tab === tabItem.key} />
+                      {t(tabItem.labelKey)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
         </nav>
 
         <div className="scrollbar-thin flex-1 overflow-y-auto p-4 md:p-6">
           {loading ? (
             <DashboardSkeleton />
           ) : (
-            <ErrorBoundary key={tab} fallbackTitle={t("dash.panelError")}>
-              {tab === "chat" && <ChatPanel />}
-              {tab === "summary" && (
-                <GeneratePanel
-                  title={t("dash.summaryTitle")}
-                  endpoint="/generate/summary"
-                  files={files}
-                  buttonLabel={t("dash.summaryButton")}
-                  loadingLabel={t("dash.summaryLoading")}
-                  exportTitle={t("dash.tab.summary")}
-                  exportFilenameSuffix="summary"
-                />
-              )}
-              {tab === "notes" && (
-                <GeneratePanel
-                  title={t("dash.notesTitle")}
-                  endpoint="/generate/notes"
-                  files={files}
-                  buttonLabel={t("dash.notesButton")}
-                  loadingLabel={t("dash.notesLoading")}
-                  exportTitle={t("dash.tab.notes")}
-                  exportFilenameSuffix="study_notes"
-                />
-              )}
-              {tab === "quiz" && <QuizPanel files={files} locked={isLocked("quiz")} />}
-              {tab === "flashcards" && <FlashcardsPanel files={files} locked={isLocked("flashcards")} />}
-              {tab === "compare" && <ComparePanel files={files} locked={isLocked("compare")} />}
-              {tab === "research" && <ResearchPanel files={files} locked={isLocked("research")} />}
-              {tab === "graph" && <KnowledgeGraphPanel files={files} />}
-              {tab === "audio" && <AudioOverviewPanel files={files} />}
-              {tab === "editor" && <PdfEditorPanel files={files} />}
-              {tab === "formfiller" && <PdfFormFillerPanel files={files} />}
-              {tab === "batch" && <BatchProcessPanel files={files} />}
-              {tab === "agent" && <AgentPanel files={files} />}
-              {tab === "automations" && <AutomationsPanel />}
-              {tab === "workspaces" && <WorkspacesPanel />}
-              {tab === "analytics" && <AnalyticsPanel />}
-            </ErrorBoundary>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={tab}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.18 }}
+              >
+                <ErrorBoundary fallbackTitle={t("dash.panelError")}>
+                  {tab === "overview" && <OverviewPanel files={files} billing={billing} onNavigate={(k) => setTab(k as TabKey)} />}
+                  {tab === "chat" && <ChatPanel />}
+                  {tab === "summary" && (
+                    <GeneratePanel
+                      title={t("dash.summaryTitle")}
+                      endpoint="/generate/summary"
+                      files={files}
+                      buttonLabel={t("dash.summaryButton")}
+                      loadingLabel={t("dash.summaryLoading")}
+                      exportTitle={t("dash.tab.summary")}
+                      exportFilenameSuffix="summary"
+                    />
+                  )}
+                  {tab === "notes" && (
+                    <GeneratePanel
+                      title={t("dash.notesTitle")}
+                      endpoint="/generate/notes"
+                      files={files}
+                      buttonLabel={t("dash.notesButton")}
+                      loadingLabel={t("dash.notesLoading")}
+                      exportTitle={t("dash.tab.notes")}
+                      exportFilenameSuffix="study_notes"
+                    />
+                  )}
+                  {tab === "quiz" && <QuizPanel files={files} locked={isLocked("quiz")} />}
+                  {tab === "flashcards" && <FlashcardsPanel files={files} locked={isLocked("flashcards")} />}
+                  {tab === "compare" && <ComparePanel files={files} locked={isLocked("compare")} />}
+                  {tab === "research" && <ResearchPanel files={files} locked={isLocked("research")} />}
+                  {tab === "graph" && <KnowledgeGraphPanel files={files} />}
+                  {tab === "audio" && <AudioOverviewPanel files={files} />}
+                  {tab === "editor" && <PdfEditorPanel files={files} />}
+                  {tab === "formfiller" && <PdfFormFillerPanel files={files} />}
+                  {tab === "batch" && <BatchProcessPanel files={files} />}
+                  {tab === "agent" && <AgentPanel files={files} />}
+                  {tab === "automations" && <AutomationsPanel />}
+                  {tab === "workspaces" && <WorkspacesPanel />}
+                  {tab === "analytics" && <AnalyticsPanel />}
+                </ErrorBoundary>
+              </motion.div>
+            </AnimatePresence>
           )}
         </div>
       </main>
