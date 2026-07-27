@@ -80,7 +80,11 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
   }
 
   return (
-    <aside className="scrollbar-thin flex h-full w-full flex-col gap-6 overflow-y-auto border-r border-white/10 bg-surface p-5 md:w-72">
+    <aside className="scrollbar-thin relative flex h-full w-full flex-col gap-6 overflow-y-auto border-r border-white/10 bg-surface p-5 md:w-72">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-64 opacity-60"
+        style={{ background: "radial-gradient(ellipse 100% 60% at 50% 0%, rgba(16,185,129,0.12), transparent 70%)" }}
+      />
       <div className="hidden items-center gap-2.5 border-b border-white/8 pb-4 md:flex">
         <img src="/logo.png" alt="Documind AI" className="h-8 w-auto" onError={(e) => (e.currentTarget.style.display = "none")} />
         <div>
@@ -96,9 +100,15 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
           <Icon name="account_circle" size={16} />
           {t("sidebar.account")}
         </div>
-        <div className="card-surface rounded-2xl p-4">
+        <div className="card-surface relative overflow-hidden rounded-2xl p-4">
+          {billing?.tier === "pro" && (
+            <div
+              className="pointer-events-none absolute inset-0 opacity-70"
+              style={{ background: "radial-gradient(ellipse 80% 100% at 100% 0%, rgba(245,158,11,0.12), transparent 60%)" }}
+            />
+          )}
           <div className="mb-2 flex items-center gap-2 font-bold text-text">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15 text-xs font-bold text-accent">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/15 text-sm font-bold text-accent ring-1 ring-accent/25">
               {(user?.username || "?").slice(0, 1).toUpperCase()}
             </span>
             <span className="truncate">{user?.username}</span>
@@ -139,7 +149,7 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
         </Button>
       </div>
 
-      <div>
+      <div className="border-t border-white/8 pt-5">
         <div className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">
           <Icon name="key" size={16} />
           {t("sidebar.googleApiKey")}
@@ -175,7 +185,7 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
         )}
       </div>
 
-      <div>
+      <div className="border-t border-white/8 pt-5">
         <div className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.15em] text-text-muted">
           <Icon name="description" size={16} />
           {t("sidebar.documents")}
@@ -194,7 +204,7 @@ export function Sidebar({ files, onFilesChanged, billing }: SidebarProps) {
           {files.map((f) => (
             <li
               key={f}
-              className="flex items-center gap-1.5 truncate rounded-lg border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-text-muted"
+              className="flex items-center gap-1.5 truncate rounded-lg border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-text-muted transition-colors hover:border-accent/25 hover:bg-white/5 hover:text-text"
               title={f}
             >
               <Icon name="picture_as_pdf" size={15} className="shrink-0 text-danger/80" />

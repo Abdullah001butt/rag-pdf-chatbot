@@ -370,6 +370,7 @@ export function WorkspacesPanel() {
                         {selected.role === "owner" && m.role !== "owner" && (
                           <button
                             onClick={() => handleRemoveMember(m.user_id)}
+                            title={t("workspaces.removeMember")}
                             className="rounded-md border border-danger/30 bg-danger/10 px-2 py-1 text-danger"
                           >
                             <Icon name="person_remove" size={13} />
@@ -412,6 +413,7 @@ export function WorkspacesPanel() {
                           <button
                             onClick={() => setMenuOpenDocId(menuOpenDocId === d.id ? null : d.id)}
                             disabled={generating}
+                            title={t("workspaces.aiActions")}
                             className="flex items-center gap-1 rounded-md border border-accent/30 bg-accent/10 px-2 py-1 text-accent disabled:opacity-50"
                           >
                             <Icon name="auto_awesome" size={13} />
@@ -431,12 +433,14 @@ export function WorkspacesPanel() {
                           )}
                           <button
                             onClick={() => handleDownload(d)}
+                            title={t("common.download")}
                             className="rounded-md border border-border px-2 py-1 text-text-muted"
                           >
                             <Icon name="download" size={13} />
                           </button>
                           <button
                             onClick={() => handleDeleteDoc(d.id)}
+                            title={t("workspaces.deleteDocument")}
                             className="rounded-md border border-danger/30 bg-danger/10 px-2 py-1 text-danger"
                           >
                             <Icon name="delete" size={13} />

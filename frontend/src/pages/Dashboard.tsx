@@ -34,6 +34,14 @@ const GROUP_COLORS: Record<string, string> = {
   insights: "#ec4899",
 }
 
+const GROUP_COLORS_DARK: Record<string, string> = {
+  core: "#047857",
+  documents: "#1d4ed8",
+  automation: "#b45309",
+  team: "#6d28d9",
+  insights: "#be185d",
+}
+
 const TABS = [
   { key: "overview", icon: "dashboard", labelKey: "dash.tab.overview", group: "core" },
   { key: "chat", icon: "chat", labelKey: "dash.tab.chat", descKey: "dash.tagline", group: "core" },
@@ -241,6 +249,12 @@ export default function Dashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.18 }}
+                style={
+                  {
+                    "--color-accent": GROUP_COLORS[activeTab?.group ?? "core"],
+                    "--color-accent-dark": GROUP_COLORS_DARK[activeTab?.group ?? "core"],
+                  } as React.CSSProperties
+                }
               >
                 <ErrorBoundary fallbackTitle={t("dash.panelError")}>
                   {tab === "overview" && <OverviewPanel files={files} billing={billing} onNavigate={(k) => setTab(k as TabKey)} />}

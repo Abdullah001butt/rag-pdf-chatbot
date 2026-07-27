@@ -906,6 +906,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                           e.stopPropagation()
                           resizeSignature(sig.id, 0.85)
                         }}
+                        title={t("editorPanel.shrinkSignature")}
                         style={{ fontSize: 11, background: "#334155", color: "white", border: "none", borderRadius: 4, padding: "1px 5px", cursor: "pointer" }}
                       >
                         −
@@ -915,6 +916,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                           e.stopPropagation()
                           resizeSignature(sig.id, 1.15)
                         }}
+                        title={t("editorPanel.enlargeSignature")}
                         style={{ fontSize: 11, background: "#334155", color: "white", border: "none", borderRadius: 4, padding: "1px 5px", cursor: "pointer" }}
                       >
                         +
@@ -924,6 +926,7 @@ export function PdfEditorPanel({ files }: PdfEditorPanelProps) {
                           e.stopPropagation()
                           deleteSignature(sig.id)
                         }}
+                        title={t("editorPanel.deleteSignature")}
                         style={{ display: "flex", background: "#ef4444", color: "white", border: "none", borderRadius: 4, padding: "1px 5px", cursor: "pointer" }}
                       >
                         <Icon name="delete" size={11} />
