@@ -143,7 +143,7 @@ def generate_audio_overview(source, text, api_key):
 
 
 def generate_with_gemini(prompt, api_key, temperature=0.3):
-    model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=temperature, google_api_key=api_key)
+    model = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=temperature, google_api_key=api_key)
     return model.invoke(prompt).content
 
 
@@ -164,7 +164,7 @@ def ocr_page_with_gemini(pdf_bytes, page_index, api_key):
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     pix = doc[page_index].get_pixmap(dpi=200)
     img_b64 = base64.b64encode(pix.tobytes("png")).decode()
-    model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0, google_api_key=api_key)
+    model = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0, google_api_key=api_key)
     message = HumanMessage(content=[
         {"type": "text", "text": "Extract all readable text from this document page exactly as it appears, including table contents. Output only the extracted text, no commentary."},
         {"type": "image_url", "image_url": f"data:image/png;base64,{img_b64}"},
@@ -209,7 +209,7 @@ def get_text_chunks_with_meta(pages):
 
 
 def build_vector_store(text_chunks, metadatas, api_key):
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001", google_api_key=api_key)
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-2", google_api_key=api_key)
     return FAISS.from_texts(text_chunks, embedding=embeddings, metadatas=metadatas)
 
 
@@ -320,7 +320,7 @@ def ocr_page_boxes(pdf_bytes, page_index, api_key):
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     pix = doc[page_index].get_pixmap(dpi=200)
     img_b64 = base64.b64encode(pix.tobytes("png")).decode()
-    model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0, google_api_key=api_key)
+    model = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0, google_api_key=api_key)
     message = HumanMessage(content=[
         {"type": "text", "text": OCR_BOXES_PROMPT},
         {"type": "image_url", "image_url": f"data:image/png;base64,{img_b64}"},

@@ -120,7 +120,7 @@ Findings:
 Research Report:"""
 
 def generate_with_gemini(prompt, api_key, temperature=0.3):
-    model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=temperature, google_api_key=api_key)
+    model = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=temperature, google_api_key=api_key)
     return model.invoke(prompt).content
 
 def parse_json_response(raw):
@@ -177,7 +177,7 @@ def ocr_page_with_gemini(pdf_bytes, page_index, api_key):
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     pix = doc[page_index].get_pixmap(dpi=200)
     img_b64 = base64.b64encode(pix.tobytes("png")).decode()
-    model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0, google_api_key=api_key)
+    model = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0, google_api_key=api_key)
     message = HumanMessage(content=[
         {"type": "text", "text": "Extract all readable text from this document page exactly as it appears, including table contents. Output only the extracted text, no commentary."},
         {"type": "image_url", "image_url": f"data:image/png;base64,{img_b64}"},
@@ -221,7 +221,7 @@ def get_text_chunks_with_meta(pages, model_name):
 
 def get_vector_store(text_chunks, metadatas, model_name, api_key=None):
     if model_name == "Google AI":
-        embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001", google_api_key=api_key)
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-2", google_api_key=api_key)
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings, metadatas=metadatas)
     vector_store.save_local("faiss_index")
     return vector_store
@@ -342,7 +342,7 @@ def user_input(user_question, model_name, api_key, pdf_docs, conversation_histor
         context = "\n\n".join(doc.page_content for doc in docs)
         chat_history = build_chat_history(conversation_history)
         prompt = PROMPT_TEMPLATE.format(chat_history=chat_history, context=context, question=user_question)
-        model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3, google_api_key=api_key)
+        model = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.3, google_api_key=api_key)
 
         user_question_output = user_question
 
