@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Icon } from "@/components/ui/icon"
 import { CardListSkeleton } from "@/components/ui/skeleton"
+import { WorkspaceCollabViewer } from "@/components/WorkspaceCollabViewer"
 
 interface Workspace {
   id: number
@@ -61,6 +62,7 @@ export function WorkspacesPanel() {
 
   const [menuOpenDocId, setMenuOpenDocId] = React.useState<number | null>(null)
   const [generating, setGenerating] = React.useState(false)
+  const [collabDoc, setCollabDoc] = React.useState<WorkspaceDoc | null>(null)
   const [resultOpen, setResultOpen] = React.useState(false)
   const [resultTitle, setResultTitle] = React.useState("")
   const [resultText, setResultText] = React.useState("")
@@ -401,6 +403,13 @@ export function WorkspacesPanel() {
                         </span>
                         <span className="relative flex shrink-0 gap-1.5">
                           <button
+                            onClick={() => setCollabDoc(d)}
+                            title={t("workspaces.viewCollaborate")}
+                            className="flex items-center gap-1 rounded-md border border-accent/30 bg-accent/10 px-2 py-1 text-accent"
+                          >
+                            <Icon name="visibility" size={13} />
+                          </button>
+                          <button
                             onClick={() => setMenuOpenDocId(menuOpenDocId === d.id ? null : d.id)}
                             disabled={generating}
                             className="flex items-center gap-1 rounded-md border border-accent/30 bg-accent/10 px-2 py-1 text-accent disabled:opacity-50"
@@ -493,6 +502,19 @@ export function WorkspacesPanel() {
           </div>
         )}
       </div>
+
+      {collabDoc && selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="h-[85vh] w-full max-w-3xl">
+            <WorkspaceCollabViewer
+              workspaceId={selected.id}
+              documentId={collabDoc.id}
+              filename={collabDoc.filename}
+              onClose={() => setCollabDoc(null)}
+            />
+          </div>
+        </div>
+      )}
 
       {resultOpen && (
         <div

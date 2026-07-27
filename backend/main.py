@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from db import init_db
 from config import CORS_ORIGINS
 from logging_config import configure_logging
-from routers import auth, billing, documents, chat, generate, versions, automations, workspaces, api_keys, public_api, analytics
+from routers import auth, billing, documents, chat, generate, versions, automations, workspaces, api_keys, public_api, analytics, workspace_ws
 
 configure_logging()
 logger = logging.getLogger("documind.api")
@@ -60,3 +60,4 @@ app.include_router(workspaces.router)
 app.include_router(api_keys.router)
 app.include_router(public_api.router)
 app.include_router(analytics.router)
+app.include_router(workspace_ws.router)
