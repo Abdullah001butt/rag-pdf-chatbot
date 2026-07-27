@@ -357,6 +357,7 @@ const en: Dict = {
   "chat.ask": "Ask",
   "chat.notInDoc": "⚠ Not in document",
   "chat.emptyState": "Ask your first question to get started.",
+  "chat.citationPage": "Page",
 
   "quiz.title": "Quiz",
   "quiz.locked": "🔒 Quiz is available on the Pro plan. Upgrade from the sidebar to unlock it.",
@@ -882,6 +883,7 @@ const fr: Dict = {
   "chat.ask": "Demander",
   "chat.notInDoc": "⚠ Absent du document",
   "chat.emptyState": "Posez votre première question pour commencer.",
+  "chat.citationPage": "Page",
 
   "quiz.title": "Quiz",
   "quiz.locked": "🔒 Le quiz est disponible sur le plan Pro. Passez à Pro depuis la barre latérale pour le débloquer.",
@@ -1407,6 +1409,7 @@ const ar: Dict = {
   "chat.ask": "اسأل",
   "chat.notInDoc": "⚠ غير موجود في المستند",
   "chat.emptyState": "اطرح سؤالك الأول للبدء.",
+  "chat.citationPage": "صفحة",
 
   "quiz.title": "اختبار",
   "quiz.locked": "🔒 الاختبار متاح في خطة Pro. قم بالترقية من الشريط الجانبي لإلغاء القفل.",
@@ -1932,6 +1935,7 @@ const ru: Dict = {
   "chat.ask": "Спросить",
   "chat.notInDoc": "⚠ Нет в документе",
   "chat.emptyState": "Задайте свой первый вопрос, чтобы начать.",
+  "chat.citationPage": "Страница",
 
   "quiz.title": "Викторина",
   "quiz.locked": "🔒 Викторина доступна на тарифе Pro. Перейдите на Pro в боковой панели, чтобы разблокировать.",
