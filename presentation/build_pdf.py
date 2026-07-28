@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Builds Documind_AI_Presentation.pdf — same content/order as the .pptx,
-rendered as landscape slide-style pages via reportlab (no LibreOffice
-available in this environment for a direct pptx->pdf conversion).
+"""Builds Documind_AI_Presentation.pdf — condensed 4-slide deck matching
+build_pptx.py, rendered as landscape slide-style pages via reportlab (no
+LibreOffice available in this environment for a direct pptx->pdf
+conversion).
 """
 import os
 from reportlab.lib.pagesizes import landscape
@@ -22,10 +23,10 @@ def hexc(h):
 
 
 class Deck:
-    def __init__(self, path):
+    def __init__(self, path, total):
         self.c = canvas.Canvas(path, pagesize=(PAGE_W, PAGE_H))
         self.page_no = 0
-        self.total = 12
+        self.total = total
 
     def save(self):
         self.c.save()
@@ -49,7 +50,7 @@ class Deck:
         elif align == "right":
             self.c.drawRightString(x * inch, y_pdf_in * inch, s)
 
-    def wrapped(self, x, y, s, max_width_in, size=11, color=C.MUTED, bold=False, leading=1.3, font=None):
+    def wrapped(self, x, y, s, max_width_in, size=11, color=C.MUTED, bold=False, leading=1.25, font=None):
         f = font or (FONT_B if bold else FONT)
         self.c.setFont(f, size)
         words = s.split()
@@ -97,172 +98,116 @@ class Deck:
     def kicker(self, x, y, s, color=C.ACCENT):
         self.text(x, y, s.upper(), size=12, color=color, bold=True)
 
-    def header(self, kicker, title, subtitle=None):
-        self.kicker(0.7, 0.75, kicker)
-        self.text(0.7, 1.25, title, size=26, bold=True, color=C.TEXT)
-        if subtitle:
-            self.text(0.7, 1.7, subtitle, size=12, color=C.MUTED)
+    def header(self, kick, title):
+        self.kicker(0.7, 0.7, kick)
+        self.text(0.7, 1.15, title, size=24, bold=True, color=C.TEXT)
 
 
 def build():
     out_dir = os.path.dirname(os.path.abspath(__file__))
     out_path = os.path.join(out_dir, "Documind_AI_Presentation.pdf")
-    d = Deck(out_path)
+    d = Deck(out_path, total=4)
 
     # 1. Title
     d.new_page()
     d.circle(-1, -1, 4.5, C.ACCENT, alpha=0.08)
     d.circle(9, 5, 3.5, C.BLUE, alpha=0.08)
-    d.rect(0.7, 2.55, 0.55, 0.08, C.ACCENT)
-    d.text(0.7, 3.55, C.TITLE, size=44, bold=True, color=C.TEXT)
-    d.wrapped(0.72, 4.15, C.SUBTITLE, 9.5, size=15, color=C.MUTED)
-    d.text(0.72, 5.85, C.AUTHOR, size=14, bold=True, color=C.TEXT)
-    d.text(0.72, 6.2, C.UNIVERSITY, size=11, color=C.MUTED)
-    d.text(0.72, 6.45, C.DEPARTMENT, size=11, color=C.MUTED)
-    d.text(0.72, 6.7, C.SUPERVISOR, size=11, color=C.MUTED)
-    d.text(PAGE_W_IN - 0.7, 6.7, C.DATE, size=11, bold=True, color=C.ACCENT, align="right")
+    d.rect(0.7, 2.05, 0.55, 0.08, C.ACCENT)
+    d.text(0.7, 3.0, C.TITLE, size=42, bold=True, color=C.TEXT)
+    d.wrapped(0.72, 3.55, C.SUBTITLE, 9.8, size=14, color=C.MUTED)
 
-    # 2. Agenda
-    d.new_page()
-    d.header("Overview", "Agenda")
-    y = 2.3
-    for i, item in enumerate(C.AGENDA):
-        d.rect(0.7, y, 0.4, 0.35, C.SURFACE, radius=0.18, stroke_color=C.BORDER)
-        d.text(0.9, y + 0.24, f"{i+1:02d}", size=11, bold=True, color=C.ACCENT, align="center")
-        d.text(1.3, y + 0.24, item, size=13, color=C.TEXT)
-        y += 0.5
-    d.footer()
-
-    # 3. Problem
-    d.new_page()
-    d.header("The Problem", "Working with PDFs is Still Slow and Fragmented")
-    card_w, card_h = 5.55, 1.9
-    start_x, start_y = 0.7, 2.3
-    for i, (title, body) in enumerate(C.PROBLEM_POINTS):
+    d.text(0.72, 4.35, "TEAM", size=10, bold=True, color=C.ACCENT)
+    for i, name in enumerate(C.TEAM):
         col, row = i % 2, i // 2
-        x = start_x + col * (card_w + 0.4)
-        y = start_y + row * (card_h + 0.3)
-        d.rect(x, y, card_w, card_h, C.SURFACE, radius=0.08, stroke_color=C.BORDER)
-        d.rect(x, y, 0.06, card_h, C.ACCENT)
-        d.text(x + 0.3, y + 0.35, title, size=14, bold=True, color=C.TEXT)
-        d.wrapped(x + 0.3, y + 0.7, body, card_w - 0.6, size=10.5, color=C.MUTED)
-    d.footer("Problem Statement")
+        d.text(0.72 + 4.2 * col, 4.7 + 0.35 * row, name, size=13, color=C.TEXT)
 
-    # 4. Solution
-    d.new_page()
-    d.header("The Solution", "Documind AI: One Platform, Every Document Workflow")
-    y = 2.5
-    for point in C.SOLUTION_POINTS:
-        d.circle(1.0, y - 0.1, 0.18, C.ACCENT)
-        d.text(0.93, y - 0.15, "v", size=12, bold=True, color=C.BG, align="center")
-        d.wrapped(1.45, y - 0.15, point, 10.5, size=13.5, color=C.TEXT)
-        y += 0.85
-    d.footer("Solution Overview")
+    d.text(0.72, 6.3, C.UNIVERSITY, size=11, color=C.MUTED)
+    d.text(0.72, 6.6, f"{C.DEPARTMENT}  |  {C.SUPERVISOR}", size=11, color=C.MUTED)
+    d.text(PAGE_W_IN - 0.7, 6.6, C.DATE, size=12, bold=True, color=C.ACCENT, align="right")
 
-    # 5. Tech stack
+    # 2. Problem & Solution
     d.new_page()
-    d.header("Technology", "Technology Stack")
-    card_w, card_h = 5.55, 0.95
-    start_x, start_y = 0.7, 2.2
-    for i, (label, val) in enumerate(C.TECH_STACK):
-        col, row = i % 2, i // 2
-        x = start_x + col * (card_w + 0.4)
-        y = start_y + row * (card_h + 0.2)
-        d.rect(x, y, card_w, card_h, C.SURFACE, radius=0.12, stroke_color=C.BORDER)
-        d.text(x + 0.3, y + 0.3, label.upper(), size=10, bold=True, color=C.ACCENT)
-        d.wrapped(x + 0.3, y + 0.6, val, card_w - 0.6, size=11, color=C.TEXT)
-    d.footer("Technology Stack")
+    d.header("Overview", "The Problem & Our Solution")
 
-    # 6. Architecture
-    d.new_page()
-    d.header("System Design", "System Architecture")
-    x, w, y, h, gap = 0.9, 11.5, 2.3, 0.8, 0.15
-    for label, desc, color in C.ARCHITECTURE_LAYERS:
-        d.rect(x, y, w, h, C.SURFACE, radius=0.1, stroke_color=color)
-        d.rect(x, y, 0.08, h, color)
-        d.text(x + 0.35, y + 0.48, label, size=13, bold=True, color=color)
-        d.wrapped(x + 2.6, y + 0.48, desc, w - 2.9, size=10.5, color=C.MUTED)
-        y += h + gap
-    d.footer("System Architecture")
+    d.text(0.7, 1.65, "THE PROBLEM", size=10.5, bold=True, color=C.MUTED)
+    y = 2.0
+    for p in C.PROBLEM_POINTS:
+        d.rect(0.7, y - 0.1, 0.1, 0.1, C.MUTED)
+        n = d.wrapped(1.0, y, p, 5.3, size=11, color=C.MUTED)
+        y += 0.32 * n + 0.35
 
-    # 7. Core features
-    d.new_page()
-    d.header("Product", "Core Features")
-    card_w, card_h = 3.65, 1.5
-    start_x, start_y = 0.7, 2.1
-    for i, (title, body) in enumerate(C.CORE_FEATURES):
-        col, row = i % 3, i // 3
-        x = start_x + col * (card_w + 0.3)
-        y = start_y + row * (card_h + 0.22)
-        d.rect(x, y, card_w, card_h, C.SURFACE, radius=0.07, stroke_color=C.BORDER)
-        d.wrapped(x + 0.25, y + 0.35, title, card_w - 0.5, size=12, bold=True, color=C.TEXT)
-        d.wrapped(x + 0.25, y + 0.7, body, card_w - 0.5, size=9, color=C.MUTED)
-    d.footer("Core Features")
+    d.text(6.9, 1.65, "OUR SOLUTION", size=10.5, bold=True, color=C.ACCENT)
+    y = 2.0
+    for p in C.SOLUTION_POINTS:
+        d.rect(6.9, y - 0.1, 0.1, 0.1, C.ACCENT)
+        n = d.wrapped(7.2, y, p, 5.3, size=11.5, color=C.TEXT)
+        y += 0.32 * n + 0.4
 
-    # 8. Standout
+    d.text(0.7, 5.55, "BUILT WITH", size=10, bold=True, color=C.MUTED)
+    x, yy = 0.7, 5.85
+    for chip in C.TECH_STACK:
+        w = 0.35 + 0.095 * len(chip)
+        if x + w > PAGE_W_IN - 0.7:
+            x = 0.7
+            yy += 0.5
+        d.rect(x, yy, w, 0.35, C.SURFACE, radius=0.17, stroke_color=C.BORDER)
+        d.text(x + w / 2, yy + 0.12, chip, size=9.5, color=C.TEXT, align="center")
+        x += w + 0.15
+
+    d.footer("Problem & Solution")
+
+    # 3. Features
     d.new_page()
-    d.header("What Makes It Different", "Standout Innovations")
-    colors = [C.ACCENT, C.BLUE, C.PURPLE, C.ACCENT, C.AMBER]
-    y = 2.2
+    d.header("Product", "Features & Standout Innovations")
+
+    d.text(0.7, 1.6, "CORE FEATURES", size=10, bold=True, color=C.MUTED)
+    y = 1.95
+    for title, body in C.CORE_FEATURES:
+        d.rect(0.7, y, 5.7, 1.0, C.SURFACE, radius=0.08, stroke_color=C.BORDER)
+        d.rect(0.7, y, 0.06, 1.0, C.MUTED)
+        d.text(0.95, y + 0.3, title, size=12.5, bold=True, color=C.TEXT)
+        d.wrapped(0.95, y + 0.62, body, 5.3, size=9, color=C.MUTED)
+        y += 1.15
+
+    d.text(6.9, 1.6, "STANDOUT INNOVATIONS", size=10, bold=True, color=C.ACCENT)
+    colors = [C.ACCENT, C.BLUE, C.PURPLE, C.AMBER]
+    y = 1.95
     for i, (title, body) in enumerate(C.STANDOUT_FEATURES):
         color = colors[i % len(colors)]
-        row_h = 0.88
-        d.rect(0.7, y, 11.9, row_h, C.SURFACE, radius=0.08, stroke_color=color)
-        d.rect(0.7, y, 0.08, row_h, color)
-        d.wrapped(1.0, y + 0.35, title, 2.9, size=12.5, bold=True, color=color)
-        d.wrapped(4.2, y + 0.3, body, 8.2, size=10, color=C.MUTED)
-        y += row_h + 0.12
-    d.footer("Standout Innovations")
+        d.rect(6.9, y, 5.7, 1.0, C.SURFACE, radius=0.08, stroke_color=color)
+        d.rect(6.9, y, 0.06, 1.0, color)
+        d.text(7.15, y + 0.3, title, size=12.5, bold=True, color=color)
+        d.wrapped(7.15, y + 0.62, body, 5.3, size=9, color=C.MUTED)
+        y += 1.15
 
-    # 9. Security
-    d.new_page()
-    d.header("Trust", "Security, Privacy & Billing")
-    y = 2.25
-    for title, body in C.SECURITY_POINTS:
-        row_h = 0.8
-        d.rect(0.7, y, 11.9, row_h, C.SURFACE, radius=0.08, stroke_color=C.BORDER)
-        d.wrapped(1.0, y + 0.32, title, 2.9, size=12, bold=True, color=C.ACCENT)
-        d.wrapped(4.1, y + 0.28, body, 8.3, size=9.5, color=C.MUTED)
-        y += row_h + 0.12
-    d.footer("Security & Privacy")
+    d.footer("Features")
 
-    # 10. Challenges
+    # 4. Architecture + Demo + Thank you
     d.new_page()
-    d.header("Engineering", "Challenges & Key Learnings")
-    card_w, card_h = 5.55, 2.05
-    start_x, start_y = 0.7, 2.25
-    for i, (title, body) in enumerate(C.CHALLENGES):
-        col, row = i % 2, i // 2
-        x = start_x + col * (card_w + 0.4)
-        y = start_y + row * (card_h + 0.3)
-        d.rect(x, y, card_w, card_h, C.SURFACE, radius=0.06, stroke_color=C.BORDER)
-        d.rect(x, y, 0.06, card_h, C.AMBER)
-        d.wrapped(x + 0.3, y + 0.4, title, card_w - 0.6, size=13, bold=True, color=C.TEXT)
-        d.wrapped(x + 0.3, y + 0.75, body, card_w - 0.6, size=10, color=C.MUTED)
-    d.footer("Challenges & Learnings")
+    d.circle(4, 6.5, 9, C.ACCENT, alpha=0.05)
+    d.header("System Design", "Architecture, Live Demo & Thank You")
 
-    # 11. Demo
-    d.new_page()
-    d.circle(6.5, 3.5, 5, C.ACCENT, alpha=0.06)
-    d.kicker(0.7, 2.6, "Live Demonstration")
-    d.text(0.7, 3.3, "Let's See It in Action", size=34, bold=True, color=C.TEXT)
-    d.text(0.72, 3.85, "Chat -> Audio Overview -> Knowledge Graph -> Live Collaboration", size=13, color=C.MUTED)
-    d.rect(0.72, 4.4, 5.4, 0.6, C.SURFACE, radius=0.3, stroke_color=C.BORDER)
-    d.text(0.72 + 2.7, 4.78, C.LIVE_URL, size=13, bold=True, color=C.ACCENT, align="center")
-    d.footer("Live Demo")
+    x = 0.7
+    for label, desc, color in C.ARCHITECTURE_LAYERS:
+        w = 2.85
+        d.rect(x, 1.85, w, 1.3, C.SURFACE, radius=0.1, stroke_color=color)
+        d.rect(x, 1.85, w, 0.06, color)
+        d.text(x + 0.2, 2.15, label, size=13, bold=True, color=color)
+        d.wrapped(x + 0.2, 2.5, desc, w - 0.4, size=8.5, color=C.MUTED)
+        x += w + 0.2
 
-    # 12. Thanks
-    d.new_page()
-    d.circle(-1, 4, 3.5, C.BLUE, alpha=0.08)
-    d.circle(9, -1, 3.5, C.ACCENT, alpha=0.08)
-    d.text(0.7, 3.4, "Thank You", size=42, bold=True, color=C.TEXT)
-    d.text(0.72, 3.95, "Questions & Discussion", size=15, color=C.MUTED)
-    y = 4.7
+    d.text(0.7, 3.7, "Live Demo", size=18, bold=True, color=C.TEXT)
+    d.rect(0.7, 4.0, 5.0, 0.5, C.SURFACE, radius=0.25, stroke_color=C.BORDER)
+    d.text(0.7 + 2.5, 4.2, C.LIVE_URL, size=13, bold=True, color=C.ACCENT, align="center")
+
+    d.text(0.7, 5.15, "Thank You — Questions & Discussion", size=20, bold=True, color=C.TEXT)
+    yy = 5.75
     for label, url in C.CLOSING_LINKS:
-        d.text(0.72, y + 0.2, label.upper(), size=10, bold=True, color=C.ACCENT)
-        d.text(0.72, y + 0.5, url, size=12.5, color=C.TEXT)
-        y += 0.75
-    d.footer()
+        d.text(0.7, yy, label.upper(), size=9, bold=True, color=C.ACCENT)
+        d.text(2.6, yy, url, size=11, color=C.TEXT)
+        yy += 0.4
+
+    d.footer("Demo & Thank You")
 
     d.save()
     print("Saved:", out_path)
