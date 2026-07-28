@@ -11,7 +11,8 @@ from reportlab.lib.colors import HexColor
 
 import deck_content as C
 
-PAGE_W, PAGE_H = landscape((13.333 * inch, 7.5 * inch))
+PAGE_W_IN, PAGE_H_IN = 13.333, 7.5
+PAGE_W, PAGE_H = landscape((PAGE_W_IN * inch, PAGE_H_IN * inch))
 FONT = "Helvetica"
 FONT_B = "Helvetica-Bold"
 
@@ -40,13 +41,13 @@ class Deck:
         self.c.setFillColor(hexc(color))
         f = font or (FONT_B if bold else FONT)
         self.c.setFont(f, size)
-        y_pdf = PAGE_H - y
+        y_pdf_in = PAGE_H_IN - y
         if align == "left":
-            self.c.drawString(x * inch, y_pdf * inch, s)
+            self.c.drawString(x * inch, y_pdf_in * inch, s)
         elif align == "center":
-            self.c.drawCentredString(x * inch, y_pdf * inch, s)
+            self.c.drawCentredString(x * inch, y_pdf_in * inch, s)
         elif align == "right":
-            self.c.drawRightString(x * inch, y_pdf * inch, s)
+            self.c.drawRightString(x * inch, y_pdf_in * inch, s)
 
     def wrapped(self, x, y, s, max_width_in, size=11, color=C.MUTED, bold=False, leading=1.3, font=None):
         f = font or (FONT_B if bold else FONT)
@@ -68,29 +69,29 @@ class Deck:
 
     def rect(self, x, y, w, h, color, radius=None, stroke_color=None, stroke_w=0.75):
         self.c.setFillColor(hexc(color))
-        y_pdf = PAGE_H - y - h
+        y_pdf_in = PAGE_H_IN - y - h
         if stroke_color:
             self.c.setStrokeColor(hexc(stroke_color))
             self.c.setLineWidth(stroke_w)
         if radius:
-            self.c.roundRect(x * inch, y_pdf * inch, w * inch, h * inch, radius * inch,
+            self.c.roundRect(x * inch, y_pdf_in * inch, w * inch, h * inch, radius * inch,
                               fill=1, stroke=1 if stroke_color else 0)
         else:
-            self.c.rect(x * inch, y_pdf * inch, w * inch, h * inch, fill=1, stroke=1 if stroke_color else 0)
+            self.c.rect(x * inch, y_pdf_in * inch, w * inch, h * inch, fill=1, stroke=1 if stroke_color else 0)
 
     def circle(self, cx, cy, r, color, alpha=1.0):
         self.c.saveState()
         self.c.setFillColor(hexc(color), alpha=alpha)
-        y_pdf = PAGE_H - cy
-        self.c.circle(cx * inch, y_pdf * inch, r * inch, fill=1, stroke=0)
+        y_pdf_in = PAGE_H_IN - cy
+        self.c.circle(cx * inch, y_pdf_in * inch, r * inch, fill=1, stroke=0)
         self.c.restoreState()
 
     def footer(self, section=""):
-        self.rect(0, PAGE_H - 0.04, PAGE_W / inch, 0.04, C.ACCENT)
-        self.text(0.55, PAGE_H / inch - 0.25, "DOCUMIND AI", size=8, color=C.MUTED, bold=True)
+        self.rect(0, PAGE_H_IN - 0.04, PAGE_W_IN, 0.04, C.ACCENT)
+        self.text(0.55, PAGE_H_IN - 0.25, "DOCUMIND AI", size=8, color=C.MUTED, bold=True)
         if section:
-            self.text(PAGE_W / inch / 2, PAGE_H / inch - 0.25, section.upper(), size=8, color=C.MUTED, align="center")
-        self.text(PAGE_W / inch - 0.55, PAGE_H / inch - 0.25, f"{self.page_no:02d} / {self.total:02d}",
+            self.text(PAGE_W_IN / 2, PAGE_H_IN - 0.25, section.upper(), size=8, color=C.MUTED, align="center")
+        self.text(PAGE_W_IN - 0.55, PAGE_H_IN - 0.25, f"{self.page_no:02d} / {self.total:02d}",
                    size=8, color=C.MUTED, align="right")
 
     def kicker(self, x, y, s, color=C.ACCENT):
@@ -119,7 +120,7 @@ def build():
     d.text(0.72, 6.2, C.UNIVERSITY, size=11, color=C.MUTED)
     d.text(0.72, 6.45, C.DEPARTMENT, size=11, color=C.MUTED)
     d.text(0.72, 6.7, C.SUPERVISOR, size=11, color=C.MUTED)
-    d.text(PAGE_W / inch - 0.7, 6.7, C.DATE, size=11, bold=True, color=C.ACCENT, align="right")
+    d.text(PAGE_W_IN - 0.7, 6.7, C.DATE, size=11, bold=True, color=C.ACCENT, align="right")
 
     # 2. Agenda
     d.new_page()
