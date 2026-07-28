@@ -24,9 +24,9 @@ TEAM = [
     "Muhammad Saad",
     "Sathyaa Narayan",
 ]
-UNIVERSITY = "Your University Name"
+UNIVERSITY = "Superior University"
 DEPARTMENT = "Department of Computer Science"
-SUPERVISOR = "Supervisor: Dr. [Supervisor Name]"
+SUPERVISOR = "Supervisor: Alen Rafugodinov"
 DATE = "2026"
 LIVE_URL = "https://documindai.online"
 REPO_URL = "https://github.com/Abdullah001butt/rag-pdf-chatbot"
